@@ -5,6 +5,9 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
+/blob-report
 
 # next.js
 /.next/
@@ -12,19 +15,43 @@
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store
+Thumbs.db
 *.pem
+*.p12
+*.pfx
+*.key
+*.crt
+
+# secrets and credentials — never commit these
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+!.env.example
+service-account.json
+credentials.json
+**/credentials*.json
+**/service-account*.json
+**/secrets/
+*.secret
+
+# local notes / member exports (may contain personal data)
+src/app/info.txt
+docs/*.xlsx
+*.xlsx
+!docs/.gitkeep
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# local env files
-.env*.local
-.env
+pnpm-debug.log*
 
 # vercel
 .vercel
@@ -33,20 +60,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# IDE
+# IDE / OS
 .vscode/
 .idea/
-
-# email configuration and test files
-/scripts/email-test.js
-/scripts/test-email.js
-/scripts/build-email.js
-/scripts/test-email-api.js
-/src/lib/emailTemplates.ts
-/src/app/api/test-email/
-/public/email-test.html
-GMAIL_SETUP_INSTRUCTIONS.md
-
-# editor files
 *.swp
-*.swo 
+*.swo

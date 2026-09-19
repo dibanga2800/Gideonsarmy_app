@@ -1,0 +1,21 @@
+---
+description: Follow AGENTS.md as the source of truth for the Gideon's Army rewrite
+alwaysApply: true
+---
+
+# Gideon's Army rewrite
+
+Follow `AGENTS.md` for architecture, security, schema, and implementation phases.
+
+Do not reintroduce:
+
+- Google Sheets as a database
+- NextAuth credentials login
+- Bootstrap
+- bcrypt password stores
+- hardcoded admin credentials
+- secrets in source files
+
+Work in phases. Do not build the entire application in one operation.
+
+Authorization must exist at UI, server, and RLS layers. Store money as integer pence. Use `Europe/London` for fellowship-facing times.

@@ -1,126 +1,102 @@
-'use client';
+import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
+import { getOwnProfile } from '@/server/services/member-service'
+import { saveOwnProfileAction } from '@/server/actions/member-actions'
+import { AlertNotice } from '@/components/alert-notice'
+import { MemberDirectoryFields } from '@/components/member-directory-fields'
+import { PageHeader } from '@/components/page-header'
+import { PendingSubmitButton } from '@/components/pending-submit-button'
+import {
+	cardComfortClass,
+	ddClass,
+	dtClass,
+	eyebrowClass,
+	pageContentClass,
+	primaryButtonClass,
+	sectionHeadingClass,
+} from '@/lib/ui'
+import {
+	formatDuesStartLabel,
+	membershipStatusLabel,
+	roleLabel,
+} from '@/lib/members/display'
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import Image from 'next/image';
-import { Member } from '@/types';
+export const metadata: Metadata = {
+	title: 'Your profile',
+}
 
-export default function ProfilePage() {
-  const { data: session } = useSession();
-  const [user, setUser] = useState<Member | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+interface ProfilePageProps {
+	searchParams: {
+		updated?: string
+		error?: string
+	}
+}
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!session?.user?.email) return;
+const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
+	const profile = await getOwnProfile()
 
-      try {
-        const response = await fetch(`/api/members/${session.user.email}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch profile');
-        }
-        const data = await response.json();
-        setUser(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load profile');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+	if (!profile) {
+		redirect('/login')
+	}
 
-    fetchUserProfile();
-  }, [session]);
+	return (
+		<main className={pageContentClass}>
+			<PageHeader
+				eyebrow="Your record"
+				title="Your profile"
+				lead={
+					profile.membership_status === 'PENDING'
+						? 'Complete these details so an administrator can review your membership. You cannot change your role, membership status, or dues start.'
+						: 'These details are visible to you and to fellowship administrators. You cannot change your role, membership status, or dues start.'
+				}
+				leadWide
+			/>
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-t-4 border-blue-500 border-solid rounded-full animate-spin mx-auto"></div>
-          <p className="mt-4 text-gray-700">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
+			{searchParams.updated === '1' ? (
+				<div className="mt-6">
+					<AlertNotice kind="success" title="Saved">
+						Your profile has been saved.
+					</AlertNotice>
+				</div>
+			) : null}
 
-  if (error || !user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center max-w-md px-4">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Error Loading Profile</h2>
-          <p className="mb-6 text-gray-700">{error || 'Profile not found'}</p>
-        </div>
-      </div>
-    );
-  }
+			{searchParams.error ? (
+				<div className="mt-6">
+					<AlertNotice kind="danger" title="Could not save">
+						Your profile could not be saved. Check the details and try again.
+					</AlertNotice>
+				</div>
+			) : null}
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">My Profile</h1>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h2>
-                <dl className="space-y-4">
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Name</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{user.name}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Email</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{user.email}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Phone Number</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{user.phoneNumber || 'Not provided'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Join Date</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {user.joinDate ? new Date(user.joinDate).toLocaleDateString() : 'Not provided'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Birthday</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {user.birthday ? new Date(user.birthday).toLocaleDateString() : 'Not provided'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Anniversary</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {user.anniversary ? new Date(user.anniversary).toLocaleDateString() : 'Not provided'}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-              
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Dues Information</h2>
-                <dl className="space-y-4">
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Total Dues Paid</dt>
-                    <dd className="mt-1 text-sm text-gray-900">£{user.duesAmountPaid.toFixed(2)}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Outstanding Balance</dt>
-                    <dd className="mt-1 text-sm font-semibold text-red-600">
-                      £{(user.outstandingYTD || 0).toFixed(2)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Current Year</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{user.year || new Date().getFullYear()}</dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-} 
+			<dl className={`${cardComfortClass} mt-8 grid gap-4 text-sm sm:grid-cols-3`}>
+				<div>
+					<dt className={dtClass}>Email</dt>
+					<dd className={ddClass}>{profile.email}</dd>
+				</div>
+				<div>
+					<dt className={dtClass}>Membership</dt>
+					<dd className={ddClass}>
+						{roleLabel(profile.role)} · {membershipStatusLabel(profile.membership_status)}
+					</dd>
+				</div>
+				<div>
+					<dt className={dtClass}>Dues</dt>
+					<dd className={ddClass}>{formatDuesStartLabel(profile.joined_at)}</dd>
+				</div>
+			</dl>
+
+			<form action={saveOwnProfileAction} className={`${cardComfortClass} mt-8 space-y-6`}>
+				<div>
+					<p className={eyebrowClass}>Directory</p>
+					<h2 className={`${sectionHeadingClass} mt-2`}>Personal details</h2>
+				</div>
+				<MemberDirectoryFields profile={profile} />
+				<PendingSubmitButton className={primaryButtonClass} pendingLabel="Saving…">
+					Save profile
+				</PendingSubmitButton>
+			</form>
+		</main>
+	)
+}
+
+export default ProfilePage

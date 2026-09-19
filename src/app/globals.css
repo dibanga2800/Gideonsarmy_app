@@ -1,52 +1,38 @@
-/* Global CSS */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
-  --bs-blue: #0d6efd;
-  --bs-blue-dark: #0a58ca;
-  --bs-green: #198754;
-  --bs-red: #dc3545;
-  --bs-white: #ffffff;
+	color-scheme: light;
+}
+
+html {
+	scroll-behavior: smooth;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+	min-height: 100vh;
+	background-color: #fbf8f2;
+	color: #111b2e;
 }
 
-/* Custom utility classes using Bootstrap colors */
-.custom-blue {
-  color: var(--bs-blue);
-  font-weight: bold;
+::selection {
+	background-color: rgb(196 163 90 / 0.3);
+	color: #0b1220;
 }
 
-.custom-green {
-  color: var(--bs-green);
-  font-weight: bold;
+@keyframes nav-progress {
+	0% {
+		transform: scaleX(0.08);
+	}
+	50% {
+		transform: scaleX(0.55);
+	}
+	100% {
+		transform: scaleX(0.92);
+	}
 }
 
-/* Bootstrap-based utility classes */
-.bg-blue {
-  background-color: var(--bs-blue);
-  color: var(--bs-white);
-}
-
-.bg-red {
-  background-color: var(--bs-red);
-  color: var(--bs-white);
-}
-
-.bg-green {
-  background-color: var(--bs-green);
-  color: var(--bs-white);
-}
-
-/* Custom Classes */
-.test-bg {
-  background-color: var(--bs-blue) !important;
-}
-
-.test-text {
-  color: var(--bs-blue-dark) !important;
-  font-weight: bold !important;
+.animate-nav-progress {
+	animation: nav-progress 1.1s ease-in-out infinite alternate;
 }
