@@ -3,8 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
-import { getRequestOrigin } from '@/lib/http/origin'
-import { isSupabaseConfigured } from '@/lib/validation/env'
+import { getSiteUrl, isSupabaseConfigured } from '@/lib/validation/env'
 import { emailPasswordSignInSchema, invitedSignUpSchema } from '@/lib/validation/login'
 import { findOpenInviteByEmail, markInviteAcceptedByEmail } from '@/server/repositories/invite-repository'
 import { getCurrentSession } from '@/server/services/auth-service'
@@ -25,7 +24,7 @@ export const signInWithGoogle = async () => {
 	const { data, error } = await supabase.auth.signInWithOAuth({
 		provider: 'google',
 		options: {
-			redirectTo: `${getRequestOrigin()}/auth/callback`,
+			redirectTo: `${getSiteUrl()}/auth/callback`,
 		},
 	})
 

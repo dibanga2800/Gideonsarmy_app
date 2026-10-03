@@ -35,13 +35,25 @@ EMAIL_MODE=console
 Emails succeed and are printed in the Next.js terminal. Useful if Gmail is not
 ready yet.
 
-## Resend (optional)
+## Resend (recommended for production)
+
+Resend is preferred for delivery to Yahoo and other external providers. First
+verify a domain in Resend and configure its SPF, DKIM, and DMARC records. Do
+not use a Gmail address as the `from` address unless Resend has verified that
+domain.
 
 ```text
 EMAIL_MODE=resend
 RESEND_API_KEY=re_...
-FELLOWSHIP_EMAIL_FROM=onboarding@resend.dev
+FELLOWSHIP_EMAIL_FROM=notifications@your-verified-domain.example
 ```
+
+Use `onboarding@resend.dev` only for initial testing to the Resend account
+owner's address. It is not a production sender for arbitrary Yahoo recipients.
+
+In Vercel, add `EMAIL_MODE`, `RESEND_API_KEY`, and `FELLOWSHIP_EMAIL_FROM` to
+Production and Preview. Remove or leave the Gmail variables unused. After
+deployment, the Members page should show `Resend` as the email delivery mode.
 
 ## Message format
 
@@ -61,7 +73,7 @@ retries stay identical while next year’s message can differ.
 ### Invitations
 
 1. Open **Members**
-2. Confirm invitation email delivery shows **Gmail**
+2. Confirm invitation email delivery shows **Resend**
 3. Invite a brother using an email you can read
 4. Check that inbox for the invitation
 

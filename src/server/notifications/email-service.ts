@@ -107,23 +107,32 @@ const gmailEmailService = (user: string, appPassword: string, from: string): Ema
 
 const resendEmailService = (apiKey: string, from: string): EmailService => ({
 	send: async (message) => {
-		const response = await fetch('https://api.resend.com/emails', {
-			method: 'POST',
-			headers: {
-				Authorization: `Bearer ${apiKey}`,
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({
-				from: `${fellowshipFromName} <${from}>`,
-				to: [message.to],
-				subject: message.subject,
-				text: message.text,
-				html: message.html,
-				reply_to: from,
-			}),
-		})
+		try {
+			const response = await fetch('https://api.resend.com/emails', {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${apiKey}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					from: `${fellowshipFromName} <${from}>`,
+					to: [message.to],
+					subject: message.subject,
+					text: message.text,
+					html: message.html,
+					reply_to: from,
+				}),
+			})
 
-		if (!response.ok) {
+			if (response.ok) {
+				logEvent({
+					operation: 'email.send',
+					status: 'ok',
+					errorCode: recipientDomain(message.to),
+				})
+				return { ok: true }
+			}
+
 			logEvent({
 				operation: 'email.send',
 				status: 'error',
@@ -131,13 +140,14 @@ const resendEmailService = (apiKey: string, from: string): EmailService => ({
 				errorCode: safeHttpStatus(response.status),
 			})
 			return { ok: false }
+		} catch {
+			logEvent({
+				operation: 'email.send',
+				status: 'error',
+				errorCategory: 'email',
+			})
+			return { ok: false }
 		}
-
-		logEvent({
-			operation: 'email.send',
-			status: 'ok',
-		})
-		return { ok: true }
 	},
 })
 

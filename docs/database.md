@@ -47,13 +47,17 @@ Apply:
 - `supabase/migrations/0016_fix_dues_start_ambiguity.sql`
 - `supabase/migrations/0017_repair_member_invites.sql`
 - `supabase/migrations/0018_mark_invites_accepted.sql`
+- `supabase/migrations/0019_prevent_admin_deactivation.sql`
+- `supabase/migrations/0020_member_photos.sql`
 
 Dues default to a full year from January 2026 (twelve months at the configured monthly amount, default 1000 pence, £120). Administrators may set a later payment start for a new member so earlier months are not billed; outstanding rows before that month are marked not applicable, and missing months from the start through the current Europe/London month are created. Outstanding is calculated for the year being viewed; unpaid months from an earlier year stay on that year and are not added to a later year. Administrators can open a previous year on the Payments ledger to record those months, including every outstanding month as a full-year payment. Future months in the current year are not treated as owing. Members see outstanding months and bank details only. `0010_repair_dues_writes.sql` adds insert/update policies so the audited dues functions can write while `FORCE ROW LEVEL SECURITY` is on. Authenticated clients still have no INSERT or UPDATE grant on `dues`. `0012_admin_member_record.sql` lets an administrator correct another member's directory fields and revokes direct execute on `apply_member_dues_start`.
 
 Event rows may be selected by active members. Insert, update, and delete stay revoked; administrators create, update, and delete gatherings through `admin_create_event`, `admin_update_event`, and `admin_delete_event`. Those functions write an audit row with title, type, and start time only.
 
-Approved members may execute `list_month_celebrants(p_month)`, which returns names and celebration dates only (no email, phone, or birth year) for a given month. Birthday comes from `profiles.birth_month` and `profiles.birth_day`; wedding anniversary comes from `profiles.wedding_anniversary`. Only `ACTIVE` members are listed. Administrators create Google invitations through `admin_create_member_invite`. `handle_new_user` copies invite names onto a `PENDING` profile.
+Approved members may execute `list_month_celebrants(p_month)`, which returns names, celebration dates, and an optional private portrait path (no email, phone, or birth year) for a given month. Birthday comes from `profiles.birth_month` and `profiles.birth_day`; wedding anniversary comes from `profiles.wedding_anniversary`. Only `ACTIVE` members are listed. Administrators create Google invitations through `admin_create_member_invite`. `handle_new_user` copies invite names onto a `PENDING` profile.
 
 ## Storage
 
 Payment evidence belongs in a private bucket. Do not use public object URLs. Downloads use short-lived signed URLs after authorisation. Storage paths use member and submission UUIDs plus a generated filename.
+
+Member portraits live in the private `member-photos` bucket. A member can read, upload, and delete only objects in their own folder. Celebration pages issue short-lived signed URLs on the server. Portraits are stored as JPEG and must stay at or under 1 MB.

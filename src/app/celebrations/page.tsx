@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { AlertNotice } from '@/components/alert-notice'
+import { CelebrantPortrait } from '@/components/celebrant-portrait'
 import { getCelebrationBoard } from '@/server/services/celebration-service'
 import { getAdminEmailStatus } from '@/server/services/notification-admin-service'
 import {
@@ -50,12 +51,15 @@ const CelebrationColumn = ({
 			) : (
 				<ul className="mt-4 divide-y divide-cream-100">
 					{items.map((item) => (
-						<li key={item.id} className="py-3 first:pt-0 last:pb-0">
-							<p className="font-medium text-navy-950">{item.name}</p>
-							<p className="mt-1 text-sm text-navy-800/80">
-								{item.label}
-								{item.isToday ? ' · celebrating today' : ''}
-							</p>
+						<li key={item.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+							<CelebrantPortrait name={item.name} photoUrl={item.photoUrl} />
+							<div>
+								<p className="font-medium text-navy-950">{item.name}</p>
+								<p className="mt-1 text-sm text-navy-800/80">
+									{item.label}
+									{item.isToday ? ' · celebrating today' : ''}
+								</p>
+							</div>
 						</li>
 					))}
 				</ul>

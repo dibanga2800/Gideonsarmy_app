@@ -22,6 +22,16 @@ export const optionalFieldLabel = (value: string | null) => value ?? 'Not provid
 export const memberDisplayName = (member: { first_name: string; last_name: string }) =>
 	`${member.first_name} ${member.last_name}`.trim()
 
+export const initialsFromName = (name: string) => {
+	const parts = name
+		.split(/\s+/)
+		.filter((part) => part.length > 0 && part.toLowerCase() !== 'and')
+	const first = parts[0]?.[0] ?? ''
+	const second = parts[1]?.[0] ?? ''
+	const initials = `${first}${second}`.toUpperCase()
+	return initials || '?'
+}
+
 export const formatBirthday = (month: number | null, day: number | null) => {
 	if (month === null || day === null || !isValidBirthMonthDay(month, day)) {
 		return 'Not provided'

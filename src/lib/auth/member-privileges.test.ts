@@ -53,4 +53,28 @@ describe('canChangeMemberPrivileges', () => {
 			}),
 		).toEqual({ allowed: false, message: MEMBER_PRIVILEGE_ERRORS.ownStatus })
 	})
+
+	it('requires an administrator to become a member before becoming inactive', () => {
+		expect(
+			canChangeMemberPrivileges({
+				...base,
+				currentRole: 'ADMIN',
+				currentStatus: 'ACTIVE',
+				nextRole: 'ADMIN',
+				nextStatus: 'INACTIVE',
+			}),
+		).toEqual({ allowed: false, message: MEMBER_PRIVILEGE_ERRORS.adminMustBecomeMember })
+	})
+
+	it('allows an administrator to become a member before becoming inactive', () => {
+		expect(
+			canChangeMemberPrivileges({
+				...base,
+				currentRole: 'ADMIN',
+				currentStatus: 'ACTIVE',
+				nextRole: 'MEMBER',
+				nextStatus: 'INACTIVE',
+			}),
+		).toEqual({ allowed: true })
+	})
 })

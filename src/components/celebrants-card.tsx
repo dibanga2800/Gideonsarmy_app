@@ -1,6 +1,7 @@
+import Link from 'next/link'
+import { CelebrantPortrait } from '@/components/celebrant-portrait'
 import { cardClass, eyebrowClass, navLinkClass } from '@/lib/ui'
 import type { MonthCelebrations } from '@/server/services/celebration-service'
-import Link from 'next/link'
 
 interface CelebrantsCardProps {
 	celebrations: MonthCelebrations
@@ -23,12 +24,15 @@ const CelebrationList = ({
 			) : (
 				<ul className="mt-3 space-y-3">
 					{items.map((item) => (
-						<li key={item.id}>
-							<p className="font-medium text-navy-950">{item.name}</p>
-							<p className="text-sm text-navy-800/80">
-								{item.label}
-								{item.isToday ? ' · today' : ''}
-							</p>
+						<li key={item.id} className="flex items-center gap-3">
+							<CelebrantPortrait name={item.name} photoUrl={item.photoUrl} />
+							<div>
+								<p className="font-medium text-navy-950">{item.name}</p>
+								<p className="text-sm text-navy-800/80">
+									{item.label}
+									{item.isToday ? ' · today' : ''}
+								</p>
+							</div>
 						</li>
 					))}
 				</ul>

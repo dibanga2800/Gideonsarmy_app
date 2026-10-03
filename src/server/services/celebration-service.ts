@@ -1,6 +1,7 @@
 import { canAccessMemberApp } from '@/lib/auth/access'
 import { getCurrentSession } from '@/server/services/auth-service'
 import { listMonthCelebrantRows } from '@/server/repositories/celebration-repository'
+import { createMemberPhotoSignedUrl } from '@/server/repositories/member-photo-repository'
 import {
 	combinedCelebrants,
 	monthCelebrationsFromSources,
@@ -15,6 +16,31 @@ export interface CelebrationBoard {
 	upcoming: MonthCelebrations
 }
 
+const withPortraitUrls = async (
+	rows: Awaited<ReturnType<typeof listMonthCelebrantRows>>,
+) => {
+	const paths = [
+		...new Set(
+			rows.flatMap((row) => (row.photo_storage_path ? [row.photo_storage_path] : [])),
+		),
+	]
+	const urls = new Map<string, string>()
+
+	await Promise.all(
+		paths.map(async (storagePath) => {
+			const url = await createMemberPhotoSignedUrl(storagePath)
+			if (url) {
+				urls.set(storagePath, url)
+			}
+		}),
+	)
+
+	return rows.map((row) => ({
+		...row,
+		photoUrl: row.photo_storage_path ? (urls.get(row.photo_storage_path) ?? null) : null,
+	}))
+}
+
 export const getCelebrationBoard = async (): Promise<CelebrationBoard | null> => {
 	const session = await getCurrentSession()
 	if (!canAccessMemberApp(session.access)) {
@@ -27,10 +53,14 @@ export const getCelebrationBoard = async (): Promise<CelebrationBoard | null> =>
 		listMonthCelebrantRows(current.month),
 		listMonthCelebrantRows(upcoming.month),
 	])
+	const [currentWithPhotos, upcomingWithPhotos] = await Promise.all([
+		withPortraitUrls(currentRows),
+		withPortraitUrls(upcomingRows),
+	])
 
 	return {
-		current: monthCelebrationsFromSources(currentRows, current.year, current.month),
-		upcoming: monthCelebrationsFromSources(upcomingRows, upcoming.year, upcoming.month),
+		current: monthCelebrationsFromSources(currentWithPhotos, current.year, current.month),
+		upcoming: monthCelebrationsFromSources(upcomingWithPhotos, upcoming.year, upcoming.month),
 	}
 }
 
@@ -41,7 +71,7 @@ export const getThisMonthCelebrations = async (): Promise<MonthCelebrations | nu
 	}
 
 	const current = getLondonYearMonthDay()
-	const rows = await listMonthCelebrantRows(current.month)
+	const rows = await withPortraitUrls(await listMonthCelebrantRows(current.month))
 	return monthCelebrationsFromSources(rows, current.year, current.month)
 }
 

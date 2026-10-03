@@ -171,4 +171,14 @@ export const adminCreateMemberSchema = z.object({
 	membership_status: z.union([z.literal('PENDING'), z.literal('ACTIVE')]),
 })
 
+export const adminChangePasswordSchema = z.object({
+	memberId: memberIdSchema,
+	password: z.string().min(10).max(72),
+	confirm_password: z.string(),
+}).refine((value) => value.password === value.confirm_password, {
+	message: 'Passwords do not match',
+	path: ['confirm_password'],
+})
+
 export type AdminCreateMember = z.infer<typeof adminCreateMemberSchema>
+export type AdminChangePassword = z.infer<typeof adminChangePasswordSchema>

@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import {
 	adminCreateMemberSchema,
+	adminChangePasswordSchema,
 	adminInviteMemberSchema,
 	adminMemberUpdateSchema,
 	memberIdSchema,
@@ -13,8 +14,12 @@ import {
 import {
 	approveMember,
 	createMemberManually,
+	changeMemberPassword,
+	deleteMemberAccount,
 	inviteMember,
+	removeOwnPortrait,
 	resendMemberInviteEmail,
+	saveOwnPortrait,
 	updateMemberRecord,
 	updateOwnProfile,
 } from '@/server/services/member-service'
@@ -52,9 +57,61 @@ export const saveOwnProfileAction = async (formData: FormData) => {
 		redirect('/profile?error=save')
 	}
 
+	const file = portraitFile(formData)
+
+	if (file && file.size > 0) {
+		const photo = await saveOwnPortrait(file)
+		revalidatePath('/profile')
+		revalidatePath('/celebrations')
+		revalidatePath('/dashboard')
+
+		if (!photo.ok) {
+			redirect('/profile?updated=1&photo=invalid')
+		}
+
+		redirect('/profile?updated=1&photo=saved')
+	}
+
 	revalidatePath('/profile')
 	revalidatePath('/dashboard')
 	redirect('/profile?updated=1')
+}
+
+const portraitFile = (formData: FormData) => {
+	const value = formData.get('portrait')
+	return value instanceof File ? value : null
+}
+
+export const saveOwnPortraitAction = async (formData: FormData) => {
+	const file = portraitFile(formData)
+
+	if (!file || file.size === 0) {
+		redirect('/profile?photo=invalid')
+	}
+
+	const result = await saveOwnPortrait(file)
+
+	if (!result.ok) {
+		redirect('/profile?photo=invalid')
+	}
+
+	revalidatePath('/profile')
+	revalidatePath('/celebrations')
+	revalidatePath('/dashboard')
+	redirect('/profile?photo=saved')
+}
+
+export const removeOwnPortraitAction = async () => {
+	const result = await removeOwnPortrait()
+
+	if (!result.ok) {
+		redirect('/profile?photo=save')
+	}
+
+	revalidatePath('/profile')
+	revalidatePath('/celebrations')
+	revalidatePath('/dashboard')
+	redirect('/profile?photo=removed')
 }
 
 export const saveMemberRecordAction = async (formData: FormData) => {
@@ -191,4 +248,39 @@ export const createMemberManuallyAction = async (formData: FormData) => {
 			? `/admin/members/${result.memberId}?created=1`
 			: `/admin/members/${result.memberId}?created=1&email=0`,
 	)
+}
+
+export const changeMemberPasswordAction = async (formData: FormData) => {
+	const parsed = adminChangePasswordSchema.safeParse({
+		memberId: formValue(formData, 'memberId'),
+		password: formValue(formData, 'password'),
+		confirm_password: formValue(formData, 'confirm_password'),
+	})
+
+	if (!parsed.success) {
+		redirect(`/admin/members/${formValue(formData, 'memberId')}?error=password`)
+	}
+
+	const result = await changeMemberPassword(parsed.data)
+	if (!result.ok) {
+		redirect(`/admin/members/${parsed.data.memberId}?error=password-${result.code}`)
+	}
+
+	revalidatePath(`/admin/members/${parsed.data.memberId}`)
+	redirect(`/admin/members/${parsed.data.memberId}?password=1`)
+}
+
+export const deleteMemberAccountAction = async (formData: FormData) => {
+	const memberId = memberIdSchema.safeParse(formValue(formData, 'memberId'))
+	if (!memberId.success) {
+		redirect('/admin/members?error=delete')
+	}
+
+	const result = await deleteMemberAccount(memberId.data)
+	if (!result.ok) {
+		redirect(`/admin/members/${memberId.data}?error=delete-${result.code}`)
+	}
+
+	revalidatePath('/admin/members')
+	redirect('/admin/members?deleted=1')
 }

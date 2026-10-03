@@ -4,6 +4,7 @@ export const MEMBER_PRIVILEGE_ERRORS = {
 	notAdmin: 'Only an administrator can change membership or role.',
 	ownRole: 'You cannot change your own role.',
 	ownStatus: 'You cannot change your own membership status.',
+	adminMustBecomeMember: 'Make this administrator a member before disabling the account.',
 } as const
 
 export const canChangeMemberPrivileges = (input: {
@@ -25,6 +26,15 @@ export const canChangeMemberPrivileges = (input: {
 
 	if (input.actorId === input.targetId && input.nextStatus !== input.currentStatus) {
 		return { allowed: false as const, message: MEMBER_PRIVILEGE_ERRORS.ownStatus }
+	}
+
+	if (
+		input.currentRole === 'ADMIN' &&
+		input.currentStatus !== 'INACTIVE' &&
+		input.nextRole === 'ADMIN' &&
+		input.nextStatus === 'INACTIVE'
+	) {
+		return { allowed: false as const, message: MEMBER_PRIVILEGE_ERRORS.adminMustBecomeMember }
 	}
 
 	return { allowed: true as const }

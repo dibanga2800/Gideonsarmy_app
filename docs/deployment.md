@@ -43,16 +43,16 @@ Copy `.env.example` to `.env.local` for local work. In **Vercel → Project → 
 | --- | --- |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key; server / Vercel only |
 | `CRON_SECRET` | Strong random secret; Vercel Cron sends `Authorization: Bearer <CRON_SECRET>` |
-| `EMAIL_MODE` | `gmail` for production |
-| `GMAIL_USER` | Gmail address used to send mail |
-| `GMAIL_APP_PASSWORD` | Google App Password (not the account password) |
+| `EMAIL_MODE` | `resend` for production |
+| `RESEND_API_KEY` | Server-only Resend API key |
+| `FELLOWSHIP_EMAIL_FROM` | Sender on a verified Resend domain |
 
 ### Optional
 
 | Variable | Notes |
 | --- | --- |
-| `FELLOWSHIP_EMAIL_FROM` | Defaults to `GMAIL_USER` when empty |
-| `RESEND_API_KEY` | Leave empty when using Gmail |
+| `GMAIL_USER` | Only needed when using the Gmail provider |
+| `GMAIL_APP_PASSWORD` | Only needed when using the Gmail provider |
 
 Generate a fresh `CRON_SECRET` for production, for example:
 

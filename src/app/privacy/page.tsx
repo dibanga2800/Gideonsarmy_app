@@ -32,7 +32,9 @@ const PrivacyPage = () => {
 					fellowship. Payment evidence is stored privately and is available only
 					to the submitting member and authorised administrators. Names of
 					brothers celebrating a birthday or wedding anniversary this month are
-					shown only to signed-in members.
+					shown only to signed-in members. An optional portrait may be shown
+					beside those names. Portraits are private, compressed before storage,
+					and are not included in emails.
 				</p>
 				<p>
 					If you have a privacy question or want to update or remove your

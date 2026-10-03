@@ -35,6 +35,7 @@ describe('monthCelebrationsFromSources', () => {
 				label: '16 September',
 				isToday: true,
 				kind: 'birthday',
+				photoUrl: null,
 			},
 		])
 		expect(september.anniversaries).toEqual([])
@@ -44,6 +45,7 @@ describe('monthCelebrationsFromSources', () => {
 			label: '8 October',
 			isToday: false,
 			kind: 'anniversary',
+			photoUrl: null,
 		})
 	})
 
@@ -58,6 +60,7 @@ describe('monthCelebrationsFromSources', () => {
 					birth_day: null,
 					wedding_anniversary: '2018-09-20',
 					spouse_name: null,
+					photoUrl: 'https://example.com/portrait.jpg',
 				},
 			],
 			2026,
@@ -72,6 +75,7 @@ describe('monthCelebrationsFromSources', () => {
 				label: '20 September',
 				isToday: false,
 				kind: 'anniversary',
+				photoUrl: 'https://example.com/portrait.jpg',
 			},
 		])
 	})

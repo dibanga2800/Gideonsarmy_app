@@ -16,6 +16,7 @@ export interface CelebrationSource {
 	anniversary_day?: number | null
 	wedding_anniversary?: string | null
 	spouse_name: string | null
+	photoUrl?: string | null
 }
 
 export interface Celebrant {
@@ -24,6 +25,7 @@ export interface Celebrant {
 	label: string
 	isToday: boolean
 	kind: 'birthday' | 'anniversary'
+	photoUrl: string | null
 }
 
 export interface MonthCelebrations {
@@ -66,6 +68,7 @@ export const monthCelebrationsFromSources = (
 					label: day,
 					isToday: isCelebrationOnLondonDate(row.birth_month, row.birth_day, now),
 					kind: 'birthday',
+					photoUrl: row.photoUrl ?? null,
 				})
 			}
 		}
@@ -82,6 +85,7 @@ export const monthCelebrationsFromSources = (
 					label: day,
 					isToday: isCelebrationOnLondonDate(anniversary.month, anniversary.day, now),
 					kind: 'anniversary',
+					photoUrl: row.photoUrl ?? null,
 				})
 			}
 		}

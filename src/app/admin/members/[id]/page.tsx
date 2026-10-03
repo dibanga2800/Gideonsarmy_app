@@ -5,8 +5,13 @@ import { getCurrentSession } from '@/server/services/auth-service'
 import { getMemberForAdmin } from '@/server/services/member-service'
 import { getMemberDuesForAdmin } from '@/server/services/dues-service'
 import { saveMemberRecordAction } from '@/server/actions/member-actions'
+import {
+	changeMemberPasswordAction,
+	deleteMemberAccountAction,
+} from '@/server/actions/member-actions'
 import { recordPaymentAction, waiveDuesAction } from '@/server/actions/payment-actions'
 import { AlertNotice } from '@/components/alert-notice'
+import { ConfirmDeleteForm } from '@/components/confirm-delete-form'
 import { MemberDirectoryFields } from '@/components/member-directory-fields'
 import { RecordPaymentForm } from '@/components/record-payment-form'
 import { canAdminAllocateDues, canAdminWaiveDues } from '@/lib/dues/transitions'
@@ -44,6 +49,7 @@ interface MemberDetailPageProps {
 		error?: string
 		created?: string
 		email?: string
+		password?: string
 	}
 }
 
@@ -116,11 +122,26 @@ const MemberDetailPage = async ({ params, searchParams }: MemberDetailPageProps)
 				</div>
 			) : null}
 
+			{searchParams.password === '1' ? (
+				<div className="mt-6">
+					<AlertNotice kind="success" title="Password changed">
+						The member must use the new password the next time they sign in.
+					</AlertNotice>
+				</div>
+			) : null}
+
 			{searchParams.error ? (
 				<div className="mt-6">
 					<AlertNotice kind="danger" title="Could not save">
-						That update could not be saved. Check the details and that you are
-						allowed to change this member, then try again.
+						{searchParams.error.startsWith('password')
+							? 'The password could not be changed. Use at least 10 characters and do not change your own password here.'
+							: searchParams.error.startsWith('delete')
+								? searchParams.error === 'delete-dues_history'
+									? 'This account is inactive, but its dues ledger must be retained. Keep it inactive instead of deleting it.'
+									: searchParams.error === 'delete-payment_history'
+										? 'This account is inactive, but it has payment history that must be retained. Keep it inactive instead of deleting it.'
+										: 'The account could not be removed. Mark the member inactive first; accounts with financial history must be retained.'
+								: 'That update could not be saved. Check the details and that you are allowed to change this member, then try again.'}
 					</AlertNotice>
 				</div>
 			) : null}
@@ -258,6 +279,49 @@ const MemberDetailPage = async ({ params, searchParams }: MemberDetailPageProps)
 					Save member record
 				</button>
 			</form>
+
+			{!isSelf ? (
+				<section className={`${cardComfortClass} mt-10 space-y-6`}>
+					<div>
+						<p className={eyebrowClass}>Account access</p>
+						<h2 className={`${sectionHeadingClass} mt-2`}>Change password</h2>
+						<p className="mt-2 text-sm leading-6 text-navy-800/80">
+							This signs the member out everywhere. Share the new password privately.
+						</p>
+					</div>
+					<form action={changeMemberPasswordAction} className="grid gap-4 sm:grid-cols-2">
+						<input type="hidden" name="memberId" value={member.id} />
+						<div>
+							<label htmlFor="member_password" className={labelClass}>New password</label>
+							<input id="member_password" name="password" type="password" minLength={10} maxLength={72} required autoComplete="new-password" className={inputClass} />
+						</div>
+						<div>
+							<label htmlFor="member_confirm_password" className={labelClass}>Confirm password</label>
+							<input id="member_confirm_password" name="confirm_password" type="password" minLength={10} maxLength={72} required autoComplete="new-password" className={inputClass} />
+						</div>
+						<button type="submit" className={primaryButtonClass}>Change password</button>
+					</form>
+				</section>
+			) : null}
+
+			{!isSelf ? (
+				<section className={`${cardComfortClass} mt-10 border-red-200`}>
+					<p className={eyebrowClass}>Destructive action</p>
+					<h2 className={`${sectionHeadingClass} mt-2`}>Remove account</h2>
+					<p className="mt-2 text-sm leading-6 text-navy-800/80">
+						Permanent deletion is allowed only for inactive members with no dues or payment history. Mark members inactive to preserve financial records.
+					</p>
+					<ConfirmDeleteForm
+						action={deleteMemberAccountAction}
+						idName="memberId"
+						idValue={member.id}
+						triggerLabel="Permanently remove account"
+						title="Permanently remove this account?"
+						body="This cannot be undone. Members with dues or payment history must be marked inactive instead."
+						confirmLabel="remove account"
+					/>
+				</section>
+			) : null}
 
 			{member.membership_status === 'ACTIVE' && dues ? (
 				<section className={`${cardComfortClass} mt-10`}>

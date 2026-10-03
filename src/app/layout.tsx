@@ -20,6 +20,9 @@ export const metadata: Metadata = {
 	title: "Gideon's Army Men's Fellowship",
 	description:
 		"Membership, dues, and fellowship management for Gideon's Army Men's Fellowship at RCCG Living Water Parish, Stoke-on-Trent.",
+	icons: {
+		icon: '/favicon.ico',
+	},
 }
 
 const RootLayout = ({ children }: { children: ReactNode }) => {

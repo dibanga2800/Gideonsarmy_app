@@ -12,6 +12,7 @@ Collect only what the fellowship needs to operate:
 - wedding anniversaries when provided
 - dues and payment confirmation records
 - optional payment evidence
+- an optional portrait shown only to signed-in approved members on birthday and anniversary lists
 
 ## Display rules
 
@@ -20,5 +21,6 @@ Collect only what the fellowship needs to operate:
 - Do not put bank secrets in frontend source or `NEXT_PUBLIC_*` variables
 - Authenticated members may see official payment instructions
 - This month's birthday brothers and wedding anniversaries are shown only to signed-in approved members, never on the public home page
+- Celebration portraits are stored in a private bucket. The app compresses them before storage. They are not included in emails and are not shown on the public home page.
 
 A public privacy notice is available at `/privacy`.

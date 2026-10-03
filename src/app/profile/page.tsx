@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { getOwnProfile } from '@/server/services/member-service'
-import { saveOwnProfileAction } from '@/server/actions/member-actions'
+import { getOwnPortraitUrl, getOwnProfile } from '@/server/services/member-service'
+import { removeOwnPortraitAction, saveOwnProfileAction } from '@/server/actions/member-actions'
 import { AlertNotice } from '@/components/alert-notice'
+import { CelebrantPortrait } from '@/components/celebrant-portrait'
 import { MemberDirectoryFields } from '@/components/member-directory-fields'
 import { PageHeader } from '@/components/page-header'
 import { PendingSubmitButton } from '@/components/pending-submit-button'
+import { PortraitFileField } from '@/components/portrait-upload-form'
 import {
 	cardComfortClass,
 	ddClass,
@@ -13,10 +15,12 @@ import {
 	eyebrowClass,
 	pageContentClass,
 	primaryButtonClass,
+	secondaryButtonClass,
 	sectionHeadingClass,
 } from '@/lib/ui'
 import {
 	formatDuesStartLabel,
+	memberDisplayName,
 	membershipStatusLabel,
 	roleLabel,
 } from '@/lib/members/display'
@@ -27,6 +31,7 @@ export const metadata: Metadata = {
 
 interface ProfilePageProps {
 	searchParams: {
+		photo?: string
 		updated?: string
 		error?: string
 	}
@@ -38,6 +43,14 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
 	if (!profile) {
 		redirect('/login')
 	}
+
+	const portraitUrl = await getOwnPortraitUrl()
+	const photoMessage =
+		searchParams.photo === 'saved'
+			? 'Your portrait has been saved.'
+			: searchParams.photo === 'removed'
+				? 'Your portrait has been removed.'
+				: null
 
 	return (
 		<main className={pageContentClass}>
@@ -68,6 +81,23 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
 				</div>
 			) : null}
 
+			{photoMessage ? (
+				<div className="mt-6">
+					<AlertNotice kind="success" title="Saved">
+						{photoMessage}
+					</AlertNotice>
+				</div>
+			) : null}
+
+			{searchParams.photo === 'invalid' || searchParams.photo === 'save' ? (
+				<div className="mt-6">
+					<AlertNotice kind="danger" title="Could not save portrait">
+						Use a JPEG, PNG, or WebP photo. The app compresses it, and it must
+						finish under 1 MB.
+					</AlertNotice>
+				</div>
+			) : null}
+
 			<dl className={`${cardComfortClass} mt-8 grid gap-4 text-sm sm:grid-cols-3`}>
 				<div>
 					<dt className={dtClass}>Email</dt>
@@ -90,11 +120,29 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
 					<p className={eyebrowClass}>Directory</p>
 					<h2 className={`${sectionHeadingClass} mt-2`}>Personal details</h2>
 				</div>
+				<div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+					<CelebrantPortrait name={memberDisplayName(profile)} photoUrl={portraitUrl} />
+					<div className="min-w-0 flex-1 space-y-3">
+						<PortraitFileField />
+						{portraitUrl ? (
+							<button
+								type="submit"
+								form="remove-portrait"
+								className={secondaryButtonClass}
+							>
+								Remove portrait
+							</button>
+						) : null}
+					</div>
+				</div>
 				<MemberDirectoryFields profile={profile} />
 				<PendingSubmitButton className={primaryButtonClass} pendingLabel="Saving…">
 					Save profile
 				</PendingSubmitButton>
 			</form>
+			{portraitUrl ? (
+				<form id="remove-portrait" action={removeOwnPortraitAction} />
+			) : null}
 		</main>
 	)
 }

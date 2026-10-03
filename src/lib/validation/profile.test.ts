@@ -14,6 +14,7 @@ const validProfile = {
 	birth_day: null,
 	wedding_anniversary: null,
 	spouse_name: null,
+	photo_storage_path: null,
 	role: 'MEMBER',
 	membership_status: 'PENDING',
 	joined_at: null,

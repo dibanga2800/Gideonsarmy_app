@@ -11,6 +11,7 @@ const celebrantRowSchema = z.object({
 	anniversary_month: z.coerce.number().int().nullable(),
 	anniversary_day: z.coerce.number().int().nullable(),
 	spouse_name: z.string().nullable(),
+	photo_storage_path: z.string().nullable(),
 })
 
 export type MonthCelebrantRow = z.infer<typeof celebrantRowSchema>

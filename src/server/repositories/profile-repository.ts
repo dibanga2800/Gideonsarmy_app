@@ -138,6 +138,30 @@ export const updateOwnProfileRecord = async (
 	return parseProfile(data)
 }
 
+export const updateOwnPhotoPath = async (
+	id: string,
+	photoStoragePath: string | null,
+): Promise<Profile | null> => {
+	const supabase = createSupabaseServerClient()
+	const { data, error } = await supabase
+		.from('profiles')
+		.update({ photo_storage_path: photoStoragePath })
+		.eq('id', id)
+		.select(PROFILE_SELECT_COLUMNS)
+		.maybeSingle()
+
+	if (error) {
+		logEvent({
+			operation: 'profiles.updatePhoto',
+			status: 'error',
+			errorCategory: 'database',
+		})
+		return null
+	}
+
+	return parseProfile(data)
+}
+
 export const updateMemberDirectoryRecord = async (
 	id: string,
 	update: OwnProfileUpdate,

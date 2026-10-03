@@ -3,7 +3,12 @@ import { canChangeMemberPrivileges } from '@/lib/auth/member-privileges'
 import { logEvent } from '@/lib/logging'
 import type { MembershipStatus } from '@/types/roles'
 import type { Profile } from '@/types/database'
-import type { AdminCreateMember, AdminInviteMember, OwnProfileUpdate } from '@/lib/validation/member'
+import type {
+	AdminChangePassword,
+	AdminCreateMember,
+	AdminInviteMember,
+	OwnProfileUpdate,
+} from '@/lib/validation/member'
 import { getCurrentSession } from '@/server/services/auth-service'
 import {
 	findProfileById,
@@ -11,6 +16,7 @@ import {
 	listProfilesPage,
 	updateMemberDirectoryRecord,
 	updateMemberPrivilegesRecord,
+	updateOwnPhotoPath,
 	updateOwnProfileRecord,
 } from '@/server/repositories/profile-repository'
 import { createMemberInviteRecord, findOpenInviteByEmail, listOpenMemberInvites } from '@/server/repositories/invite-repository'
@@ -20,6 +26,13 @@ import { memberDisplayName } from '@/lib/members/display'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 import { DUES_TRACKING_START_MONTH, duesStartMonthFromJoinedAt } from '@/lib/dates/dues-year'
 import { DEFAULT_MEMBER_PAGE_SIZE } from '@/lib/members/pagination'
+import { compressPortrait } from '@/lib/members/compress-portrait'
+import { isOwnMemberPhotoPath, memberPhotoStoragePath } from '@/lib/members/portrait'
+import {
+	createMemberPhotoSignedUrl,
+	deleteMemberPhotoObject,
+	uploadMemberPhotoObject,
+} from '@/server/repositories/member-photo-repository'
 
 export type MemberActionResult =
 	| { ok: true; profile: Profile }
@@ -51,6 +64,80 @@ export const updateOwnProfile = async (update: OwnProfileUpdate): Promise<Member
 
 	if (!profile) {
 		return safeFailure('Your profile could not be saved. Try again.')
+	}
+
+	return { ok: true, profile }
+}
+
+export const getOwnPortraitUrl = async () => {
+	const profile = await getOwnProfile()
+	if (!profile?.photo_storage_path) {
+		return null
+	}
+
+	if (!isOwnMemberPhotoPath(profile.id, profile.photo_storage_path)) {
+		return null
+	}
+
+	return createMemberPhotoSignedUrl(profile.photo_storage_path)
+}
+
+export const saveOwnPortrait = async (file: File): Promise<MemberActionResult> => {
+	const session = await getCurrentSession()
+
+	if (!canCompleteOwnProfile(session.access) || !session.userId) {
+		return safeFailure('You need to be signed in to update your portrait.')
+	}
+
+	const intake = new Uint8Array(await file.arrayBuffer())
+	const compressed = await compressPortrait(intake)
+
+	if (!compressed) {
+		return safeFailure('Use a JPEG, PNG, or WebP photo. It could not be reduced under 1 MB.')
+	}
+
+	const storagePath = memberPhotoStoragePath(session.userId)
+	const uploaded = await uploadMemberPhotoObject({
+		memberId: session.userId,
+		storagePath,
+		bytes: compressed.bytes,
+	})
+
+	if (!uploaded) {
+		return safeFailure('Your portrait could not be saved. Try again.')
+	}
+
+	const profile = await updateOwnPhotoPath(session.userId, storagePath)
+
+	if (!profile) {
+		await deleteMemberPhotoObject(session.userId, storagePath)
+		return safeFailure('Your portrait could not be saved. Try again.')
+	}
+
+	const previous = session.profile?.photo_storage_path
+	if (previous && previous !== storagePath && isOwnMemberPhotoPath(session.userId, previous)) {
+		await deleteMemberPhotoObject(session.userId, previous)
+	}
+
+	return { ok: true, profile }
+}
+
+export const removeOwnPortrait = async (): Promise<MemberActionResult> => {
+	const session = await getCurrentSession()
+
+	if (!canCompleteOwnProfile(session.access) || !session.userId || !session.profile) {
+		return safeFailure('You need to be signed in to update your portrait.')
+	}
+
+	const previous = session.profile.photo_storage_path
+	const profile = await updateOwnPhotoPath(session.userId, null)
+
+	if (!profile) {
+		return safeFailure('Your portrait could not be removed. Try again.')
+	}
+
+	if (previous && isOwnMemberPhotoPath(session.userId, previous)) {
+		await deleteMemberPhotoObject(session.userId, previous)
 	}
 
 	return { ok: true, profile }
@@ -92,6 +179,136 @@ export const getMemberForAdmin = async (memberId: string) => {
 	}
 
 	return findProfileById(memberId)
+}
+
+export const changeMemberPassword = async (
+	input: AdminChangePassword,
+): Promise<{ ok: true } | { ok: false; code: 'denied' | 'not_found' | 'self' | 'auth' }> => {
+	const session = await getCurrentSession()
+
+	if (!session.userId || !canAccessAdmin(session.access)) {
+		return { ok: false, code: 'denied' }
+	}
+
+	if (session.userId === input.memberId) {
+		return { ok: false, code: 'self' }
+	}
+
+	const member = await findProfileById(input.memberId)
+	if (!member) {
+		return { ok: false, code: 'not_found' }
+	}
+
+	const admin = createSupabaseAdminClient()
+	const { error } = await admin.auth.admin.updateUserById(input.memberId, {
+		password: input.password,
+	})
+
+	if (error) {
+		logEvent({
+			operation: 'members.changePassword',
+			status: 'error',
+			errorCategory: 'auth',
+			errorCode: error.code,
+		})
+		return { ok: false, code: 'auth' }
+	}
+
+	await admin.auth.admin.signOut(input.memberId, 'global')
+	await admin.from('audit_logs').insert({
+		actor_id: session.userId,
+		action: 'member.change_password',
+		entity_type: 'profiles',
+		entity_id: input.memberId,
+		old_data: null,
+		new_data: { email_domain: member.email.split('@')[1] ?? null },
+	})
+
+	return { ok: true }
+}
+
+export const deleteMemberAccount = async (
+	memberId: string,
+): Promise<
+	| { ok: true }
+	| {
+			ok: false
+			code:
+				| 'denied'
+				| 'not_found'
+				| 'self'
+				| 'active'
+				| 'dues_history'
+				| 'payment_history'
+				| 'financial_history'
+				| 'auth'
+		}
+> => {
+	const session = await getCurrentSession()
+
+	if (!session.userId || !canAccessAdmin(session.access)) {
+		return { ok: false, code: 'denied' }
+	}
+
+	if (session.userId === memberId) {
+		return { ok: false, code: 'self' }
+	}
+
+	const member = await findProfileById(memberId)
+	if (!member) {
+		return { ok: false, code: 'not_found' }
+	}
+
+	if (member.membership_status !== 'INACTIVE') {
+		return { ok: false, code: 'active' }
+	}
+
+	const admin = createSupabaseAdminClient()
+	const [{ count: duesCount, error: duesError }, { count: paymentCount, error: paymentError }] =
+		await Promise.all([
+			admin.from('dues').select('id', { count: 'exact', head: true }).eq('member_id', memberId),
+			admin
+				.from('payment_submissions')
+				.select('id', { count: 'exact', head: true })
+				.eq('member_id', memberId),
+		])
+
+	if (duesError || paymentError) {
+		return { ok: false, code: 'financial_history' }
+	}
+
+	if ((paymentCount ?? 0) > 0) {
+		return { ok: false, code: 'payment_history' }
+	}
+
+	if ((duesCount ?? 0) > 0) {
+		return { ok: false, code: 'dues_history' }
+	}
+
+	const { error } = await admin.auth.admin.deleteUser(memberId)
+	if (error) {
+		logEvent({
+			operation: 'members.deleteAccount',
+			status: 'error',
+			errorCategory: 'auth',
+			errorCode: error.code,
+		})
+		return { ok: false, code: 'auth' }
+	}
+
+	await admin.from('audit_logs').insert({
+		actor_id: session.userId,
+		action: 'member.delete_account',
+		entity_type: 'profiles',
+		entity_id: memberId,
+		old_data: {
+			email_domain: member.email.split('@')[1] ?? null,
+			membership_status: member.membership_status,
+		},
+		new_data: null,
+	})
+
+	return { ok: true }
 }
 
 export const approveMember = async (memberId: string): Promise<MemberActionResult> => {
