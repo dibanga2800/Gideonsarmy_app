@@ -21,7 +21,11 @@ const withPortraitUrls = async (
 ) => {
 	const paths = [
 		...new Set(
-			rows.flatMap((row) => (row.photo_storage_path ? [row.photo_storage_path] : [])),
+			rows.flatMap((row) =>
+				[row.photo_storage_path, row.anniversary_photo_storage_path].filter(
+					(path): path is string => Boolean(path),
+				),
+			),
 		),
 	]
 	const urls = new Map<string, string>()
@@ -38,6 +42,9 @@ const withPortraitUrls = async (
 	return rows.map((row) => ({
 		...row,
 		photoUrl: row.photo_storage_path ? (urls.get(row.photo_storage_path) ?? null) : null,
+		anniversaryPhotoUrl: row.anniversary_photo_storage_path
+			? (urls.get(row.anniversary_photo_storage_path) ?? null)
+			: null,
 	}))
 }
 

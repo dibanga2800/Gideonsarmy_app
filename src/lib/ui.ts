@@ -56,7 +56,7 @@ export const cardComfortClass =
 	'rounded-xl border border-cream-200 bg-white p-6 sm:p-8 shadow-[0_12px_40px_-24px_rgba(11,18,32,0.35)]'
 
 export const eyebrowClass =
-	'text-xs font-semibold uppercase tracking-[0.22em] text-gold-600'
+	'text-xs font-semibold uppercase tracking-[0.12em] text-gold-600 sm:tracking-[0.22em]'
 
 export const labelClass = 'block text-sm font-medium text-navy-800'
 

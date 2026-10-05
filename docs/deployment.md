@@ -98,11 +98,14 @@ curl -sS -i "https://YOUR_SITE/api/jobs/notifications"
 
 ## Supabase before first production traffic
 
-Apply migrations in order through **0018** in the SQL editor (see `docs/supabase-setup.md`). Especially if dues payment-start updates fail with PostgreSQL `42702`, apply:
+Apply migrations in order through **0021** in the SQL editor (see `docs/supabase-setup.md`). Especially if dues payment-start updates fail with PostgreSQL `42702`, apply:
 
 - `0016_fix_dues_start_ambiguity.sql`
 - `0017_repair_member_invites.sql`
 - `0018_mark_invites_accepted.sql`
+- `0019_prevent_admin_deactivation.sql`
+- `0020_member_photos.sql`
+- `0021_member_anniversary_photos.sql`
 
 Confirm in the Supabase dashboard:
 

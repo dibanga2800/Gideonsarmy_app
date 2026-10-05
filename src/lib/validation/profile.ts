@@ -9,7 +9,7 @@ import {
 } from '@/types/roles'
 
 export const PROFILE_SELECT_COLUMNS =
-	'id, email, first_name, last_name, phone, department, occupation, address, birth_month, birth_day, wedding_anniversary, spouse_name, photo_storage_path, role, membership_status, joined_at, created_at, updated_at'
+	'id, email, first_name, last_name, phone, department, occupation, address, birth_month, birth_day, wedding_anniversary, spouse_name, photo_storage_path, anniversary_photo_storage_path, role, membership_status, joined_at, created_at, updated_at'
 
 const isMemberRole = (value: unknown): value is MemberRole =>
 	typeof value === 'string' && MEMBER_ROLES.some((role) => role === value)
@@ -36,6 +36,7 @@ export const profileSchema = z
 		wedding_anniversary: nullableText,
 		spouse_name: nullableText,
 		photo_storage_path: nullableText,
+		anniversary_photo_storage_path: nullableText,
 		role: z.custom<MemberRole>(isMemberRole),
 		membership_status: z.custom<MembershipStatus>(isMembershipStatus),
 		joined_at: nullableText,

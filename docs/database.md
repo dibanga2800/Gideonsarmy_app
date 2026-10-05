@@ -49,6 +49,7 @@ Apply:
 - `supabase/migrations/0018_mark_invites_accepted.sql`
 - `supabase/migrations/0019_prevent_admin_deactivation.sql`
 - `supabase/migrations/0020_member_photos.sql`
+- `supabase/migrations/0021_member_anniversary_photos.sql`
 
 Dues default to a full year from January 2026 (twelve months at the configured monthly amount, default 1000 pence, £120). Administrators may set a later payment start for a new member so earlier months are not billed; outstanding rows before that month are marked not applicable, and missing months from the start through the current Europe/London month are created. Outstanding is calculated for the year being viewed; unpaid months from an earlier year stay on that year and are not added to a later year. Administrators can open a previous year on the Payments ledger to record those months, including every outstanding month as a full-year payment. Future months in the current year are not treated as owing. Members see outstanding months and bank details only. `0010_repair_dues_writes.sql` adds insert/update policies so the audited dues functions can write while `FORCE ROW LEVEL SECURITY` is on. Authenticated clients still have no INSERT or UPDATE grant on `dues`. `0012_admin_member_record.sql` lets an administrator correct another member's directory fields and revokes direct execute on `apply_member_dues_start`.
 
@@ -60,4 +61,4 @@ Approved members may execute `list_month_celebrants(p_month)`, which returns nam
 
 Payment evidence belongs in a private bucket. Do not use public object URLs. Downloads use short-lived signed URLs after authorisation. Storage paths use member and submission UUIDs plus a generated filename.
 
-Member portraits live in the private `member-photos` bucket. A member can read, upload, and delete only objects in their own folder. Celebration pages issue short-lived signed URLs on the server. Portraits are stored as JPEG and must stay at or under 1 MB.
+Birthday portraits and wedding-anniversary couple photos live in the private `member-photos` bucket. Profiles store separate `photo_storage_path` and `anniversary_photo_storage_path` values. A member can read, upload, and delete only objects in their own folder. Celebration pages issue short-lived signed URLs on the server. Photos are stored as JPEG and must stay at or under 1 MB. Birthday portraits and anniversary photos are displayed only in their respective celebration lists; signed images can be opened in a larger view.

@@ -4,7 +4,17 @@ import { useState, type ChangeEvent } from 'react'
 import { compressPortraitFile } from '@/lib/members/compress-portrait-file'
 import { helpTextClass, inputClass, labelClass } from '@/lib/ui'
 
-export const PortraitFileField = () => {
+interface PortraitFileFieldProps {
+	name?: string
+	label?: string
+	helpText?: string
+}
+
+export const PortraitFileField = ({
+	name = 'portrait',
+	label = 'Birthday portrait',
+	helpText = 'Shown with your name on birthday lists. JPEG, PNG, or WebP; compressed to under 1 MB.',
+}: PortraitFileFieldProps) => {
 	const [error, setError] = useState<string | null>(null)
 
 	const handleChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -30,22 +40,19 @@ export const PortraitFileField = () => {
 
 	return (
 		<div>
-			<label htmlFor="portrait" className={labelClass}>
-				Portrait
+			<label htmlFor={name} className={labelClass}>
+				{label}
 			</label>
 			<input
-				id="portrait"
-				name="portrait"
+				id={name}
+				name={name}
 				type="file"
+				required
 				accept="image/jpeg,image/png,image/webp"
 				className={inputClass}
 				onChange={handleChange}
 			/>
-			<p className={helpTextClass}>
-				Optional. Shown beside your name on birthday and anniversary lists. The
-				app compresses it to about 250–500 KB, and never stores more than 1 MB.
-				Leave this empty to keep your current photo.
-			</p>
+			<p className={helpTextClass}>{helpText}</p>
 			{error ? <p className="mt-2 text-sm text-red-800">{error}</p> : null}
 		</div>
 	)

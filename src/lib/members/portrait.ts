@@ -57,6 +57,11 @@ export const memberPhotoStoragePath = (memberId: string) => {
 	return `${memberId}/${crypto.randomUUID()}.jpg`
 }
 
+export type MemberPhotoKind = 'portrait' | 'anniversary'
+
+export const memberPhotoColumn = (kind: MemberPhotoKind) =>
+	kind === 'anniversary' ? 'anniversary_photo_storage_path' : 'photo_storage_path'
+
 export const isMemberPhotoPath = (storagePath: string) => PHOTO_PATH.test(storagePath)
 
 export const isOwnMemberPhotoPath = (memberId: string, storagePath: string) => {

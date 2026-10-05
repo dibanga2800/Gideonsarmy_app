@@ -27,7 +27,12 @@ import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 import { DUES_TRACKING_START_MONTH, duesStartMonthFromJoinedAt } from '@/lib/dates/dues-year'
 import { DEFAULT_MEMBER_PAGE_SIZE } from '@/lib/members/pagination'
 import { compressPortrait } from '@/lib/members/compress-portrait'
-import { isOwnMemberPhotoPath, memberPhotoStoragePath } from '@/lib/members/portrait'
+import {
+	isOwnMemberPhotoPath,
+	memberPhotoColumn,
+	memberPhotoStoragePath,
+	type MemberPhotoKind,
+} from '@/lib/members/portrait'
 import {
 	createMemberPhotoSignedUrl,
 	deleteMemberPhotoObject,
@@ -70,23 +75,43 @@ export const updateOwnProfile = async (update: OwnProfileUpdate): Promise<Member
 }
 
 export const getOwnPortraitUrl = async () => {
+	return getOwnMemberPhotoUrl('portrait')
+}
+
+export const getOwnAnniversaryPhotoUrl = async () => {
+	return getOwnMemberPhotoUrl('anniversary')
+}
+
+const getOwnMemberPhotoUrl = async (kind: MemberPhotoKind) => {
 	const profile = await getOwnProfile()
-	if (!profile?.photo_storage_path) {
+	const storagePath = profile?.[memberPhotoColumn(kind)]
+	if (!profile || !storagePath) {
 		return null
 	}
 
-	if (!isOwnMemberPhotoPath(profile.id, profile.photo_storage_path)) {
+	if (!isOwnMemberPhotoPath(profile.id, storagePath)) {
 		return null
 	}
 
-	return createMemberPhotoSignedUrl(profile.photo_storage_path)
+	return createMemberPhotoSignedUrl(storagePath)
 }
 
 export const saveOwnPortrait = async (file: File): Promise<MemberActionResult> => {
+	return saveOwnMemberPhoto(file, 'portrait')
+}
+
+export const saveOwnAnniversaryPhoto = async (file: File): Promise<MemberActionResult> => {
+	return saveOwnMemberPhoto(file, 'anniversary')
+}
+
+const saveOwnMemberPhoto = async (
+	file: File,
+	kind: MemberPhotoKind,
+): Promise<MemberActionResult> => {
 	const session = await getCurrentSession()
 
 	if (!canCompleteOwnProfile(session.access) || !session.userId) {
-		return safeFailure('You need to be signed in to update your portrait.')
+		return safeFailure('You need to be signed in to update your profile photos.')
 	}
 
 	const intake = new Uint8Array(await file.arrayBuffer())
@@ -107,14 +132,14 @@ export const saveOwnPortrait = async (file: File): Promise<MemberActionResult> =
 		return safeFailure('Your portrait could not be saved. Try again.')
 	}
 
-	const profile = await updateOwnPhotoPath(session.userId, storagePath)
+	const profile = await updateOwnPhotoPath(session.userId, storagePath, kind)
 
 	if (!profile) {
 		await deleteMemberPhotoObject(session.userId, storagePath)
 		return safeFailure('Your portrait could not be saved. Try again.')
 	}
 
-	const previous = session.profile?.photo_storage_path
+	const previous = session.profile?.[memberPhotoColumn(kind)]
 	if (previous && previous !== storagePath && isOwnMemberPhotoPath(session.userId, previous)) {
 		await deleteMemberPhotoObject(session.userId, previous)
 	}
@@ -123,14 +148,22 @@ export const saveOwnPortrait = async (file: File): Promise<MemberActionResult> =
 }
 
 export const removeOwnPortrait = async (): Promise<MemberActionResult> => {
+	return removeOwnMemberPhoto('portrait')
+}
+
+export const removeOwnAnniversaryPhoto = async (): Promise<MemberActionResult> => {
+	return removeOwnMemberPhoto('anniversary')
+}
+
+const removeOwnMemberPhoto = async (kind: MemberPhotoKind): Promise<MemberActionResult> => {
 	const session = await getCurrentSession()
 
 	if (!canCompleteOwnProfile(session.access) || !session.userId || !session.profile) {
-		return safeFailure('You need to be signed in to update your portrait.')
+		return safeFailure('You need to be signed in to update your profile photos.')
 	}
 
-	const previous = session.profile.photo_storage_path
-	const profile = await updateOwnPhotoPath(session.userId, null)
+	const previous = session.profile[memberPhotoColumn(kind)]
+	const profile = await updateOwnPhotoPath(session.userId, null, kind)
 
 	if (!profile) {
 		return safeFailure('Your portrait could not be removed. Try again.')

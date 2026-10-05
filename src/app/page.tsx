@@ -18,21 +18,23 @@ const HomePage = async () => {
 				: 'View membership status'
 
 	return (
-		<main className={`${pageMainClass} relative flex flex-col justify-center py-16 sm:py-24`}>
+		<main className={`${pageMainClass} relative flex flex-col justify-center py-10 sm:py-24`}>
 			<div
 				className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(ellipse_at_top,_rgba(196,163,90,0.14),_transparent_60%)]"
 				aria-hidden="true"
 			/>
 			<section className="max-w-3xl">
-				<div className="mb-6 flex items-center gap-3">
+				<div className="mb-5 flex items-center gap-3 sm:mb-6">
 					<FellowshipMark className="h-12 w-12" />
-					<p className={eyebrowClass}>RCCG Living Water Parish · Stoke-on-Trent</p>
+					<p className={`${eyebrowClass} leading-relaxed`}>
+						RCCG Living Water Parish · Stoke-on-Trent
+					</p>
 				</div>
-				<h1 className="font-serif text-4xl font-semibold tracking-tight text-navy-950 sm:text-5xl">
+				<h1 className="font-serif text-3xl font-semibold leading-tight tracking-tight text-navy-950 sm:text-5xl">
 					Gideon&apos;s Army Men&apos;s Fellowship
 				</h1>
 				<div className="mt-5 h-px w-16 bg-gold-500" aria-hidden="true" />
-				<p className="mt-6 max-w-2xl text-lg leading-8 text-navy-800/85">
+				<p className="mt-5 max-w-2xl text-base leading-7 text-navy-800/85 sm:mt-6 sm:text-lg sm:leading-8">
 					A secure home for approved members to manage dues, stay informed about
 					fellowship gatherings, and receive birthday and anniversary reminders.
 					A Google account or an invited email and password does not grant

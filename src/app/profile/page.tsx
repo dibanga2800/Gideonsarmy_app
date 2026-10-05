@@ -1,8 +1,19 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { getOwnPortraitUrl, getOwnProfile } from '@/server/services/member-service'
-import { removeOwnPortraitAction, saveOwnProfileAction } from '@/server/actions/member-actions'
+import {
+	getOwnAnniversaryPhotoUrl,
+	getOwnPortraitUrl,
+	getOwnProfile,
+} from '@/server/services/member-service'
+import {
+	removeOwnAnniversaryPhotoAction,
+	removeOwnPortraitAction,
+	saveOwnAnniversaryPhotoAction,
+	saveOwnProfileAction,
+	saveOwnPortraitAction,
+} from '@/server/actions/member-actions'
 import { AlertNotice } from '@/components/alert-notice'
+import { AnniversaryPhoto } from '@/components/anniversary-photo'
 import { CelebrantPortrait } from '@/components/celebrant-portrait'
 import { MemberDirectoryFields } from '@/components/member-directory-fields'
 import { PageHeader } from '@/components/page-header'
@@ -32,6 +43,7 @@ export const metadata: Metadata = {
 interface ProfilePageProps {
 	searchParams: {
 		photo?: string
+		anniversaryPhoto?: string
 		updated?: string
 		error?: string
 	}
@@ -45,6 +57,7 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
 	}
 
 	const portraitUrl = await getOwnPortraitUrl()
+	const anniversaryPhotoUrl = await getOwnAnniversaryPhotoUrl()
 	const photoMessage =
 		searchParams.photo === 'saved'
 			? 'Your portrait has been saved.'
@@ -97,6 +110,23 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
 					</AlertNotice>
 				</div>
 			) : null}
+			{searchParams.anniversaryPhoto === 'saved' || searchParams.anniversaryPhoto === 'removed' ? (
+				<div className="mt-6">
+					<AlertNotice kind="success" title="Saved">
+						{searchParams.anniversaryPhoto === 'saved'
+							? 'Your couple photo has been saved.'
+							: 'Your couple photo has been removed.'}
+					</AlertNotice>
+				</div>
+			) : null}
+			{searchParams.anniversaryPhoto === 'invalid' || searchParams.anniversaryPhoto === 'save' ? (
+				<div className="mt-6">
+					<AlertNotice kind="danger" title="Could not save couple photo">
+						Use a JPEG, PNG, or WebP photo. The app compresses it, and it must
+						finish under 1 MB.
+					</AlertNotice>
+				</div>
+			) : null}
 
 			<dl className={`${cardComfortClass} mt-8 grid gap-4 text-sm sm:grid-cols-3`}>
 				<div>
@@ -115,34 +145,78 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
 				</div>
 			</dl>
 
+			<section className={`${cardComfortClass} mt-8`} aria-labelledby="celebration-photos-heading">
+				<p className={eyebrowClass}>Celebrations</p>
+				<h2 id="celebration-photos-heading" className={`${sectionHeadingClass} mt-2`}>
+					Your photos
+				</h2>
+				<div className="mt-6 grid gap-8 md:grid-cols-2">
+					<section className="min-w-0 space-y-4" aria-labelledby="birthday-photo-heading">
+						<h3 id="birthday-photo-heading" className="font-semibold text-navy-950">
+							Birthday portrait
+						</h3>
+						<div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+							<CelebrantPortrait
+								name={memberDisplayName(profile)}
+								photoUrl={portraitUrl}
+								size="large"
+							/>
+							<div className="min-w-0 flex-1">
+								<form action={saveOwnPortraitAction} className="space-y-3">
+									<PortraitFileField />
+									<PendingSubmitButton className={primaryButtonClass} pendingLabel="Uploading…">
+										Save birthday photo
+									</PendingSubmitButton>
+								</form>
+								{portraitUrl ? (
+									<form action={removeOwnPortraitAction} className="mt-3">
+										<PendingSubmitButton className={secondaryButtonClass} pendingLabel="Removing…">
+											Remove birthday photo
+										</PendingSubmitButton>
+									</form>
+								) : null}
+							</div>
+						</div>
+					</section>
+					<section className="min-w-0 space-y-4" aria-labelledby="anniversary-photo-heading">
+						<h3 id="anniversary-photo-heading" className="font-semibold text-navy-950">
+							Wedding anniversary photo
+						</h3>
+						<AnniversaryPhoto
+							name={`${memberDisplayName(profile)} and ${profile.spouse_name ?? 'spouse'}`}
+							photoUrl={anniversaryPhotoUrl}
+						/>
+						<form action={saveOwnAnniversaryPhotoAction} className="space-y-3">
+							<PortraitFileField
+								name="anniversaryPortrait"
+								label="Couple photo"
+								helpText="A photo of you together, shown on wedding anniversary lists. JPEG, PNG, or WebP; compressed to under 1 MB."
+							/>
+							<PendingSubmitButton className={primaryButtonClass} pendingLabel="Uploading…">
+								Save couple photo
+							</PendingSubmitButton>
+						</form>
+						{anniversaryPhotoUrl ? (
+							<form action={removeOwnAnniversaryPhotoAction}>
+								<PendingSubmitButton className={secondaryButtonClass} pendingLabel="Removing…">
+									Remove couple photo
+								</PendingSubmitButton>
+							</form>
+						) : null}
+					</section>
+				</div>
+			</section>
+
 			<form action={saveOwnProfileAction} className={`${cardComfortClass} mt-8 space-y-6`}>
 				<div>
 					<p className={eyebrowClass}>Directory</p>
 					<h2 className={`${sectionHeadingClass} mt-2`}>Personal details</h2>
-				</div>
-				<div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-					<CelebrantPortrait name={memberDisplayName(profile)} photoUrl={portraitUrl} />
-					<div className="min-w-0 flex-1 space-y-3">
-						<PortraitFileField />
-						{portraitUrl ? (
-							<button
-								type="submit"
-								form="remove-portrait"
-								className={secondaryButtonClass}
-							>
-								Remove portrait
-							</button>
-						) : null}
-					</div>
 				</div>
 				<MemberDirectoryFields profile={profile} />
 				<PendingSubmitButton className={primaryButtonClass} pendingLabel="Saving…">
 					Save profile
 				</PendingSubmitButton>
 			</form>
-			{portraitUrl ? (
-				<form id="remove-portrait" action={removeOwnPortraitAction} />
-			) : null}
 		</main>
 	)
 }

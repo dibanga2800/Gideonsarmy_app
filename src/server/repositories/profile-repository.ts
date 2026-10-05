@@ -8,6 +8,7 @@ import {
 	PROFILE_SELECT_COLUMNS,
 } from '@/lib/validation/profile'
 import type { OwnProfileUpdate } from '@/lib/validation/member'
+import { memberPhotoColumn, type MemberPhotoKind } from '@/lib/members/portrait'
 import {
 	DEFAULT_MEMBER_PAGE_SIZE,
 	normalisePage,
@@ -141,11 +142,13 @@ export const updateOwnProfileRecord = async (
 export const updateOwnPhotoPath = async (
 	id: string,
 	photoStoragePath: string | null,
+	kind: MemberPhotoKind = 'portrait',
 ): Promise<Profile | null> => {
 	const supabase = createSupabaseServerClient()
+	const column = memberPhotoColumn(kind)
 	const { data, error } = await supabase
 		.from('profiles')
-		.update({ photo_storage_path: photoStoragePath })
+		.update({ [column]: photoStoragePath })
 		.eq('id', id)
 		.select(PROFILE_SELECT_COLUMNS)
 		.maybeSingle()

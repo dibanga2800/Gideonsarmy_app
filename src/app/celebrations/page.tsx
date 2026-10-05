@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { AlertNotice } from '@/components/alert-notice'
+import { AnniversaryPhoto } from '@/components/anniversary-photo'
 import { CelebrantPortrait } from '@/components/celebrant-portrait'
 import { getCelebrationBoard } from '@/server/services/celebration-service'
 import { getAdminEmailStatus } from '@/server/services/notification-admin-service'
@@ -38,10 +39,12 @@ const CelebrationColumn = ({
 	title,
 	empty,
 	items,
+	kind,
 }: {
 	title: string
 	empty: string
 	items: MonthCelebrations['birthdays']
+	kind: 'birthday' | 'anniversary'
 }) => {
 	return (
 		<section className={cardClass}>
@@ -51,9 +54,13 @@ const CelebrationColumn = ({
 			) : (
 				<ul className="mt-4 divide-y divide-cream-100">
 					{items.map((item) => (
-						<li key={item.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-							<CelebrantPortrait name={item.name} photoUrl={item.photoUrl} />
-							<div>
+						<li key={item.id} className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center">
+							{kind === 'anniversary' ? (
+								<AnniversaryPhoto name={item.name} photoUrl={item.anniversaryPhotoUrl} />
+							) : (
+								<CelebrantPortrait name={item.name} photoUrl={item.photoUrl} />
+							)}
+							<div className="min-w-0">
 								<p className="font-medium text-navy-950">{item.name}</p>
 								<p className="mt-1 text-sm text-navy-800/80">
 									{item.label}
@@ -79,11 +86,13 @@ const MonthBlock = ({ celebrations }: { celebrations: MonthCelebrations }) => {
 					title="Birthdays"
 					empty="No recorded birthdays fall in this month."
 					items={celebrations.birthdays}
+					kind="birthday"
 				/>
 				<CelebrationColumn
 					title="Wedding anniversaries"
 					empty="No recorded wedding anniversaries fall in this month."
 					items={celebrations.anniversaries}
+					kind="anniversary"
 				/>
 			</div>
 		</section>

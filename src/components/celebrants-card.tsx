@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { AnniversaryPhoto } from '@/components/anniversary-photo'
 import { CelebrantPortrait } from '@/components/celebrant-portrait'
 import { cardClass, eyebrowClass, navLinkClass } from '@/lib/ui'
 import type { MonthCelebrations } from '@/server/services/celebration-service'
@@ -11,10 +12,12 @@ const CelebrationList = ({
 	title,
 	empty,
 	items,
+	kind,
 }: {
 	title: string
 	empty: string
 	items: MonthCelebrations['birthdays']
+	kind: 'birthday' | 'anniversary'
 }) => {
 	return (
 		<div>
@@ -24,9 +27,13 @@ const CelebrationList = ({
 			) : (
 				<ul className="mt-3 space-y-3">
 					{items.map((item) => (
-						<li key={item.id} className="flex items-center gap-3">
-							<CelebrantPortrait name={item.name} photoUrl={item.photoUrl} />
-							<div>
+						<li key={item.id} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+							{kind === 'anniversary' ? (
+								<AnniversaryPhoto name={item.name} photoUrl={item.anniversaryPhotoUrl} />
+							) : (
+								<CelebrantPortrait name={item.name} photoUrl={item.photoUrl} />
+							)}
+							<div className="min-w-0">
 								<p className="font-medium text-navy-950">{item.name}</p>
 								<p className="text-sm text-navy-800/80">
 									{item.label}
@@ -53,11 +60,13 @@ export const CelebrantsCard = ({ celebrations }: CelebrantsCardProps) => {
 					title="Birthdays"
 					empty="No recorded birthdays fall in this month."
 					items={celebrations.birthdays}
+					kind="birthday"
 				/>
 				<CelebrationList
 					title="Wedding anniversaries"
 					empty="No recorded wedding anniversaries fall in this month."
 					items={celebrations.anniversaries}
+					kind="anniversary"
 				/>
 			</div>
 			<p className="mt-5">

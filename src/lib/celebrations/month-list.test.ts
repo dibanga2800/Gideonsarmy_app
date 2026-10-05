@@ -36,6 +36,7 @@ describe('monthCelebrationsFromSources', () => {
 				isToday: true,
 				kind: 'birthday',
 				photoUrl: null,
+				anniversaryPhotoUrl: null,
 			},
 		])
 		expect(september.anniversaries).toEqual([])
@@ -46,6 +47,7 @@ describe('monthCelebrationsFromSources', () => {
 			isToday: false,
 			kind: 'anniversary',
 			photoUrl: null,
+			anniversaryPhotoUrl: null,
 		})
 	})
 
@@ -61,6 +63,7 @@ describe('monthCelebrationsFromSources', () => {
 					wedding_anniversary: '2018-09-20',
 					spouse_name: null,
 					photoUrl: 'https://example.com/portrait.jpg',
+					anniversaryPhotoUrl: 'https://example.com/couple.jpg',
 				},
 			],
 			2026,
@@ -75,8 +78,29 @@ describe('monthCelebrationsFromSources', () => {
 				label: '20 September',
 				isToday: false,
 				kind: 'anniversary',
-				photoUrl: 'https://example.com/portrait.jpg',
+				photoUrl: null,
+				anniversaryPhotoUrl: 'https://example.com/couple.jpg',
 			},
 		])
+	})
+
+	it('keeps birthday portraits separate from anniversary couple photos', () => {
+		const result = monthCelebrationsFromSources(
+			[
+				{
+					...brother,
+					photoUrl: 'https://example.com/birthday.jpg',
+					anniversaryPhotoUrl: 'https://example.com/couple.jpg',
+				},
+			],
+			2026,
+			10,
+			new Date('2026-09-16T12:00:00.000Z'),
+		)
+
+		expect(result.anniversaries[0]).toMatchObject({
+			photoUrl: null,
+			anniversaryPhotoUrl: 'https://example.com/couple.jpg',
+		})
 	})
 })

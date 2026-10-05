@@ -14,6 +14,16 @@ interface SiteHeaderProps {
 export const SiteHeader = ({ access, unreadNoticeCount = 0 }: SiteHeaderProps) => {
 	const signedIn = access.status !== 'unauthenticated'
 	const homeHref = canAccessMemberApp(access) ? '/dashboard' : '/'
+	const mobileSignOut = signedIn ? (
+		<form action={signOut}>
+			<PendingSubmitButton
+				className={`${headerButtonClass} w-full`}
+				pendingLabel="Signing out…"
+			>
+				Sign out
+			</PendingSubmitButton>
+		</form>
+	) : null
 
 	return (
 		<header className="sticky top-0 z-40 border-b border-gold-500/35 bg-navy-950 text-white shadow-[0_12px_40px_-20px_rgba(11,18,32,0.95)]">
@@ -33,11 +43,15 @@ export const SiteHeader = ({ access, unreadNoticeCount = 0 }: SiteHeaderProps) =
 					</span>
 				</Link>
 				<div className="flex flex-wrap items-center justify-end gap-4">
-					<SiteNav access={access} unreadNoticeCount={unreadNoticeCount} />
+					<SiteNav
+						access={access}
+						unreadNoticeCount={unreadNoticeCount}
+						mobileSignOut={mobileSignOut}
+					/>
 					{signedIn ? (
 						<>
-							<div className="hidden h-6 w-px bg-white/20 sm:block" aria-hidden="true" />
-							<form action={signOut}>
+							<div className="hidden h-6 w-px bg-white/20 lg:block" aria-hidden="true" />
+							<form action={signOut} className="hidden lg:block">
 								<PendingSubmitButton className={headerButtonClass} pendingLabel="Signing out…">
 									Sign out
 								</PendingSubmitButton>

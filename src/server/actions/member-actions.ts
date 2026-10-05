@@ -18,8 +18,10 @@ import {
 	deleteMemberAccount,
 	inviteMember,
 	removeOwnPortrait,
+	removeOwnAnniversaryPhoto,
 	resendMemberInviteEmail,
 	saveOwnPortrait,
+	saveOwnAnniversaryPhoto,
 	updateMemberRecord,
 	updateOwnProfile,
 } from '@/server/services/member-service'
@@ -77,8 +79,8 @@ export const saveOwnProfileAction = async (formData: FormData) => {
 	redirect('/profile?updated=1')
 }
 
-const portraitFile = (formData: FormData) => {
-	const value = formData.get('portrait')
+const portraitFile = (formData: FormData, fieldName = 'portrait') => {
+	const value = formData.get(fieldName)
 	return value instanceof File ? value : null
 }
 
@@ -112,6 +114,38 @@ export const removeOwnPortraitAction = async () => {
 	revalidatePath('/celebrations')
 	revalidatePath('/dashboard')
 	redirect('/profile?photo=removed')
+}
+
+export const saveOwnAnniversaryPhotoAction = async (formData: FormData) => {
+	const file = portraitFile(formData, 'anniversaryPortrait')
+
+	if (!file || file.size === 0) {
+		redirect('/profile?anniversaryPhoto=invalid')
+	}
+
+	const result = await saveOwnAnniversaryPhoto(file)
+
+	if (!result.ok) {
+		redirect('/profile?anniversaryPhoto=invalid')
+	}
+
+	revalidatePath('/profile')
+	revalidatePath('/celebrations')
+	revalidatePath('/dashboard')
+	redirect('/profile?anniversaryPhoto=saved')
+}
+
+export const removeOwnAnniversaryPhotoAction = async () => {
+	const result = await removeOwnAnniversaryPhoto()
+
+	if (!result.ok) {
+		redirect('/profile?anniversaryPhoto=save')
+	}
+
+	revalidatePath('/profile')
+	revalidatePath('/celebrations')
+	revalidatePath('/dashboard')
+	redirect('/profile?anniversaryPhoto=removed')
 }
 
 export const saveMemberRecordAction = async (formData: FormData) => {
