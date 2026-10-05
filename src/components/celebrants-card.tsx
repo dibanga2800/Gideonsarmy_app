@@ -31,7 +31,11 @@ const CelebrationList = ({
 							{kind === 'anniversary' ? (
 								<AnniversaryPhoto name={item.name} photoUrl={item.anniversaryPhotoUrl} />
 							) : (
-								<CelebrantPortrait name={item.name} photoUrl={item.photoUrl} />
+								<CelebrantPortrait
+									name={item.name}
+									photoUrl={item.photoUrl}
+									size="landscape"
+								/>
 							)}
 							<div className="min-w-0">
 								<p className="font-medium text-navy-950">{item.name}</p>
