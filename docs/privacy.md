@@ -23,4 +23,4 @@ Collect only what the fellowship needs to operate:
 - This month's birthday brothers and wedding anniversaries are shown only to signed-in approved members, never on the public home page
 - Birthday portraits and anniversary couple photos are stored in a private bucket. The app compresses them before storage and serves them to approved members through short-lived signed URLs. They are not included in emails or shown on the public home page.
 
-A public privacy notice is available at `/privacy`.
+The public privacy notice is available at `/privacy`; a summary of UK GDPR rights and data requests is available at `/gdpr`.

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { PageHeader } from '@/components/page-header'
 import {
 	cardComfortClass,
@@ -32,13 +33,20 @@ const PrivacyPage = () => {
 					fellowship. Payment evidence is stored privately and is available only
 					to the submitting member and authorised administrators. Names of
 					brothers celebrating a birthday or wedding anniversary this month are
-					shown only to signed-in members. An optional portrait may be shown
-					beside those names. Portraits are private, compressed before storage,
-					and are not included in emails.
+					shown only to signed-in approved members. An optional birthday portrait
+				and a separate optional couple photo may be shown beside the relevant
+				celebration. These photos are stored privately, compressed before storage,
+				and are not included in emails.
 				</p>
 				<p>
-					If you have a privacy question or want to update or remove your
-					information, contact the fellowship administrators.
+					The application uses service providers for hosting, authentication,
+					database and private file storage, and email delivery. Access is limited
+					by account permissions. For information about your rights, retention,
+					and how to make a request, see the{' '}
+					<Link href="/gdpr" className="font-semibold underline">
+						GDPR and data rights page
+					</Link>
+					.
 				</p>
 			</section>
 		</main>

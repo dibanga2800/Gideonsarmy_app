@@ -9,14 +9,20 @@ export const SiteFooter = () => {
 			<div className="mx-auto grid w-full max-w-5xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1.2fr_1fr] lg:px-8">
 				<div className="flex flex-col gap-3 text-sm text-white/75 sm:flex-row sm:items-end sm:justify-between lg:flex-col lg:items-start">
 					<p>Gideon&apos;s Army · RCCG Living Water Parish, Stoke-on-Trent</p>
-					<p>
+					<nav className="flex flex-wrap gap-x-5 gap-y-2" aria-label="Legal information">
 						<Link
 							href="/privacy"
 							className="font-medium text-gold-400 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-400"
 						>
-							Privacy notice
+							Privacy
 						</Link>
-					</p>
+						<Link
+							href="/gdpr"
+							className="font-medium text-gold-400 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-400"
+						>
+							GDPR
+						</Link>
+					</nav>
 				</div>
 				<section aria-label="RCCG Radio">
 					<h2 className="font-serif text-base font-semibold text-white">RCCG Radio</h2>
