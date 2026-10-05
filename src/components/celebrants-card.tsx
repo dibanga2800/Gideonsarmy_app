@@ -1,7 +1,6 @@
-import Link from 'next/link'
 import { AnniversaryPhoto } from '@/components/anniversary-photo'
 import { CelebrantPortrait } from '@/components/celebrant-portrait'
-import { cardClass, eyebrowClass, navLinkClass } from '@/lib/ui'
+import { cardClass, eyebrowClass } from '@/lib/ui'
 import type { MonthCelebrations } from '@/server/services/celebration-service'
 
 interface CelebrantsCardProps {
@@ -73,11 +72,6 @@ export const CelebrantsCard = ({ celebrations }: CelebrantsCardProps) => {
 					kind="anniversary"
 				/>
 			</div>
-			<p className="mt-5">
-				<Link href="/celebrations" className={navLinkClass}>
-					This month and next
-				</Link>
-			</p>
 		</section>
 	)
 }
