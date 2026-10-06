@@ -170,7 +170,7 @@ const PaymentsPage = async ({ searchParams }: PaymentsPageProps) => {
 					<p className={`${helpTextClass} mt-2`}>
 						Reminders go only to members with outstanding months in the current
 						year. Earlier years are not added to that total. The system also
-						emails them on the 25th of each month, Europe/London.
+						emails them on the last day of each month, Europe/London.
 					</p>
 				</form>
 			</section>

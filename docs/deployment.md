@@ -89,7 +89,7 @@ See `docs/email.md` for Gmail App Password setup.
 }
 ```
 
-Vercel Cron uses UTC and Hobby schedules can run up to 59 minutes after the configured hour. Two daily celebration schedules cover GMT and BST; `/api/jobs/celebrations` sends only during the Europe/London 6:00–6:59am hour. The general job continues to handle dues and event reminders at 18:00 UTC and does not send birthday or anniversary email.
+Vercel Cron uses UTC and Hobby schedules can run up to 59 minutes after the configured hour. Two daily celebration schedules cover GMT and BST; `/api/jobs/celebrations` sends only during the Europe/London 6:00–6:59am hour. The general job continues to handle dues and event reminders at 18:00 UTC. It sends dues reminders on the last calendar day of each Europe/London month to active members with outstanding dues, and does not send birthday or anniversary email.
 
 ### Manual cron smoke checks
 

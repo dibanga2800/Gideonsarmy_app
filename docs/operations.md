@@ -26,6 +26,7 @@ If payment-start updates fail with PostgreSQL `42702` (ambiguous `due_month`), a
 Notification sending, dues generation, and reminder schedules must be idempotent. Duplicate execution must not create duplicate notifications or duplicate dues rows.
 
 The daily general route is `GET` or `POST` `/api/jobs/notifications`. Birthday and wedding-anniversary emails use `GET` or `POST` `/api/jobs/celebrations`; Vercel calls that endpoint at 05:00 and 06:00 UTC, and it sends only during the Europe/London 06:00–06:59 hour (to account for GMT/BST).
+The general job also checks the Europe/London calendar date and queues monthly dues reminders on each month's last day, only for active members with outstanding dues.
 
 On Vercel, `vercel.json` schedules these jobs. Production must set `CRON_SECRET` in Vercel environment variables. Requests without the bearer token must receive `401`.
 

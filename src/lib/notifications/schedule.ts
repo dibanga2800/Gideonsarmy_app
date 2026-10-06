@@ -7,8 +7,15 @@ export const TWO_HOURS_MS = 2 * 60 * 60 * 1000
 const sameLondonDay = (left: Date, right: Date) =>
 	utcToLondonDateAndTime(left).date === utcToLondonDateAndTime(right).date
 
-export const shouldSendMonthlyDuesReminder = (now: Date, force = false) =>
-	force || getLondonYearMonthDay(now).day === 25
+export const shouldSendMonthlyDuesReminder = (now: Date, force = false) => {
+	if (force) {
+		return true
+	}
+
+	const { year, month, day } = getLondonYearMonthDay(now)
+	const lastDayOfMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
+	return day === lastDayOfMonth
+}
 
 export const duesReminderIdempotencyKey = (memberId: string, now: Date) => {
 	const { year, month } = getLondonYearMonthDay(now)
