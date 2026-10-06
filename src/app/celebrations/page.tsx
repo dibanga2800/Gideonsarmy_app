@@ -155,8 +155,8 @@ const CelebrationsPage = async ({ searchParams }: CelebrationsPageProps) => {
 					<p className="text-sm leading-6 text-navy-800">
 						Automatic delivery runs at 6:00 am UK time. On a celebration day,
 						the celebrant receives a personal greeting and all other active
-						members receive an invitation to celebrate with him. The seven-day
-						advance greeting is sent to the celebrant only.
+						members receive an invitation to celebrate with him. Celebration
+						emails are not sent in advance.
 					</p>
 					<div className="flex flex-col gap-3 sm:flex-row">
 						<form action={sendTodayCelebrationEmailsAction}>

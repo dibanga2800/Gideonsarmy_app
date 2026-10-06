@@ -33,10 +33,8 @@ Use keys such as:
 
 - `dues_reminder:{member_id}:{YYYY-MM-01}`
 - `birthday:{member_id}:{year}`
-- `birthday:{member_id}:{year}:week`
 - `birthday-fellowship:{member_id}:{year}:{recipient_id}`
 - `anniversary:{member_id}:{year}`
-- `anniversary:{member_id}:{year}:week`
 - `anniversary-fellowship:{member_id}:{year}:{recipient_id}`
 - `event:{event_id}:2d:{member_id}`
 - `event:{event_id}:2h:{member_id}`
@@ -45,7 +43,7 @@ Use keys such as:
 - `birthday:{member_id}:{year}:manual:{YYYY-MM-DD}`
 - `anniversary:{member_id}:{year}:manual:{YYYY-MM-DD}`
 
-Administrators can queue outstanding-dues reminders from Payments and manually retry celebration emails from Celebrations. The scheduled celebration job runs at 06:00 Europe/London time: seven days before a birthday or wedding anniversary it sends a private advance greeting to the celebrant; on the day it sends the celebrant's special greeting and separate, professionally worded celebration emails to every other active member, excluding the celebrant. In-app celebration notices list this month and next month from profile birthday and anniversary fields without sending extra email. Stored events and calculated prayer meetings notify two days before and two hours before.
+Administrators can queue outstanding-dues reminders from Payments and manually retry celebration emails from Celebrations. The scheduled celebration job runs at 06:00 Europe/London time and sends birthday and wedding-anniversary email only on the celebration day: the celebrant receives a personal greeting, while every other active member receives a separate celebration email. The celebrant is excluded from that group email. In-app celebration notices list this month and next month from profile birthday and anniversary fields without sending extra email. Stored events and calculated prayer meetings notify two days before and two hours before.
 
 Email delivery is configured with Gmail App Password (`EMAIL_MODE=gmail`), or `EMAIL_MODE=console` for terminal-only testing. See `docs/email.md`.
 

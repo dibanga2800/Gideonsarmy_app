@@ -41,7 +41,7 @@ const NoticesPage = async ({ searchParams }: NoticesPageProps) => {
 			<PageHeader
 				eyebrow="Fellowship"
 				title="Notices"
-				lead="Birthday and wedding anniversary notices are built from the dates on each approved member's profile for this month and next month. Event reminders still appear when they are due. Emails are sent separately on the day and seven days before."
+				lead="Birthday and wedding anniversary notices are built from the dates on each approved member's profile for this month and next month. Event reminders still appear when they are due. Celebration emails are sent on the day: the celebrant receives a personal greeting and other active members receive a separate message."
 			/>
 			{notices.items.length === 0 ? (
 				<p className={emptyStateClass}>

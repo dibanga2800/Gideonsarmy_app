@@ -6,7 +6,6 @@ import {
 	getLondonYearMonthDay,
 	isCelebrationInLondonMonth,
 	isCelebrationOnLondonDate,
-	isCelebrationSevenDaysBefore,
 	formatCelebrationDay,
 	londonDateKey,
 	nextLondonYearMonth,
@@ -190,23 +189,13 @@ export const buildCelebrationNotices = (
 			const sendBirthday =
 				scope === 'this_month'
 					? isThisMonth
-					: isToday ||
-						Boolean(
-							dayLabel &&
-								isCelebrationSevenDaysBefore(member.birth_month, member.birth_day, now),
-						)
+					: isToday
 
 			if (dayLabel && sendBirthday) {
-				const upcoming =
-					scope === 'scheduled' &&
-					!isToday &&
-					isCelebrationSevenDaysBefore(member.birth_month, member.birth_day, now)
 				const mail = birthdayCelebrantEmail(
 					member.first_name,
-					upcoming ? `the coming ${dayLabel}` : dayLabel,
-					upcoming
-						? `birthday-celebrant:${member.id}:${year}:week`
-						: `birthday-celebrant:${member.id}:${year}${manualKey}`,
+					dayLabel,
+					`birthday-celebrant:${member.id}:${year}${manualKey}`,
 				)
 				items.push({
 					memberId: member.id,
@@ -214,9 +203,7 @@ export const buildCelebrationNotices = (
 					title: mail.subject,
 					message: mail.text,
 					scheduledAt: now.toISOString(),
-					idempotencyKey: upcoming
-						? `birthday:${member.id}:${year}:week`
-						: `birthday:${member.id}:${year}${manualKey}`,
+					idempotencyKey: `birthday:${member.id}:${year}${manualKey}`,
 				})
 
 				if (isToday || scope === 'this_month') {
@@ -258,23 +245,17 @@ export const buildCelebrationNotices = (
 		const sendAnniversary =
 			scope === 'this_month'
 				? isThisMonth
-				: isToday || isCelebrationSevenDaysBefore(anniversary.month, anniversary.day, now)
+				: isToday
 
 		if (!sendAnniversary) {
 			continue
 		}
 
-		const upcoming =
-			scope === 'scheduled' &&
-			!isToday &&
-			isCelebrationSevenDaysBefore(anniversary.month, anniversary.day, now)
 		const mail = anniversaryCelebrantEmail(
 			member.first_name,
-			upcoming ? `the coming ${dayLabel}` : dayLabel,
+			dayLabel,
 			member.spouse_name,
-			upcoming
-				? `anniversary-celebrant:${member.id}:${year}:week`
-				: `anniversary-celebrant:${member.id}:${year}${manualKey}`,
+			`anniversary-celebrant:${member.id}:${year}${manualKey}`,
 		)
 		items.push({
 			memberId: member.id,
@@ -282,9 +263,7 @@ export const buildCelebrationNotices = (
 			title: mail.subject,
 			message: mail.text,
 			scheduledAt: now.toISOString(),
-			idempotencyKey: upcoming
-				? `anniversary:${member.id}:${year}:week`
-				: `anniversary:${member.id}:${year}${manualKey}`,
+			idempotencyKey: `anniversary:${member.id}:${year}${manualKey}`,
 		})
 
 		if (isToday || scope === 'this_month') {

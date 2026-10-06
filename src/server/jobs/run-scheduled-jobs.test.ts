@@ -72,7 +72,7 @@ describe('buildCelebrationNotices', () => {
 		).toBe(false)
 	})
 
-	it('sends the seven-day advance greeting only to the celebrant', () => {
+	it('sends no celebration email seven days before the day', () => {
 		const members = [
 			activeMember(celebrantId, {
 				birthMonth: 10,
@@ -86,13 +86,6 @@ describe('buildCelebrationNotices', () => {
 			now: new Date('2026-09-29T05:00:00.000Z'),
 		})
 
-		expect(notices).toHaveLength(2)
-		expect(notices.map((notice) => notice.memberId)).toEqual([
-			celebrantId,
-			celebrantId,
-		])
-		expect(notices.every((notice) => notice.idempotencyKey.endsWith(':week'))).toBe(
-			true,
-		)
+		expect(notices).toHaveLength(0)
 	})
 })

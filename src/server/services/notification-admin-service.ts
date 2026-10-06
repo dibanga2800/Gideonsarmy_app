@@ -49,7 +49,7 @@ export const sendCelebrationEmails = async (
 			message:
 				scope === 'this_month'
 					? 'No active members have a birthday or wedding anniversary in this month.'
-					: 'No birthdays or anniversaries fall today or seven days from today.',
+					: 'No birthdays or anniversaries fall today.',
 		}
 	}
 
