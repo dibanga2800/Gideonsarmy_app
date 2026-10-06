@@ -43,6 +43,8 @@ const byDayThenName = (left: Celebrant, right: Celebrant) => {
 	return day !== 0 ? day : left.name.localeCompare(right.name)
 }
 
+const brotherDisplayName = (row: CelebrationSource) => `Bro ${memberDisplayName(row)}`
+
 const anniversaryOf = (row: CelebrationSource) => {
 	if (row.anniversary_month && row.anniversary_day) {
 		return { month: row.anniversary_month, day: row.anniversary_day }
@@ -66,7 +68,7 @@ export const monthCelebrationsFromSources = (
 			if (day) {
 				birthdays.push({
 					id: `birthday-${row.id}`,
-					name: memberDisplayName(row),
+					name: brotherDisplayName(row),
 					label: day,
 					isToday: isCelebrationOnLondonDate(row.birth_month, row.birth_day, now),
 					kind: 'birthday',
@@ -83,8 +85,8 @@ export const monthCelebrationsFromSources = (
 				anniversaries.push({
 					id: `anniversary-${row.id}`,
 					name: row.spouse_name
-						? `${memberDisplayName(row)} and ${row.spouse_name}`
-						: memberDisplayName(row),
+						? `${brotherDisplayName(row)} and ${row.spouse_name}`
+						: brotherDisplayName(row),
 					label: day,
 					isToday: isCelebrationOnLondonDate(anniversary.month, anniversary.day, now),
 					kind: 'anniversary',

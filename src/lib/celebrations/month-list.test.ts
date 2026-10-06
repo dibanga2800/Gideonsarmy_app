@@ -31,7 +31,7 @@ describe('monthCelebrationsFromSources', () => {
 		expect(september.birthdays).toEqual([
 			{
 				id: 'birthday-11111111-1111-4111-8111-111111111111',
-				name: 'David Ibanga',
+				name: 'Bro David Ibanga',
 				label: '16 September',
 				isToday: true,
 				kind: 'birthday',
@@ -42,7 +42,7 @@ describe('monthCelebrationsFromSources', () => {
 		expect(september.anniversaries).toEqual([])
 		expect(october.birthdays).toEqual([])
 		expect(october.anniversaries[0]).toMatchObject({
-			name: 'David Ibanga and Joy',
+			name: 'Bro David Ibanga and Joy',
 			label: '8 October',
 			isToday: false,
 			kind: 'anniversary',
@@ -74,7 +74,7 @@ describe('monthCelebrationsFromSources', () => {
 		expect(result.anniversaries).toEqual([
 			{
 				id: 'anniversary-22222222-2222-4222-8222-222222222222',
-				name: 'James Okoro',
+				name: 'Bro James Okoro',
 				label: '20 September',
 				isToday: false,
 				kind: 'anniversary',
