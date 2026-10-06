@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { adminInviteMemberSchema, adminMemberUpdateSchema, ownProfileUpdateSchema } from './member'
+import {
+	adminInviteMemberSchema,
+	adminMemberUpdateSchema,
+	adminUpdateMemberInviteSchema,
+	ownProfileUpdateSchema,
+} from './member'
 
 describe('ownProfileUpdateSchema', () => {
 	it('accepts a valid profile update and ignores empty optional fields', () => {
@@ -193,6 +198,35 @@ describe('adminInviteMemberSchema', () => {
 			email: 'brother@example.com',
 			first_name: 'James',
 			last_name: null,
+		})
+	})
+
+	describe('adminUpdateMemberInviteSchema', () => {
+		it('normalises the email and validates the target invitation id', () => {
+			expect(
+				adminUpdateMemberInviteSchema.parse({
+					inviteId: '11111111-1111-4111-8111-111111111111',
+					email: '  Brother@Example.com ',
+					first_name: 'James',
+					last_name: '',
+				}),
+			).toEqual({
+				inviteId: '11111111-1111-4111-8111-111111111111',
+				email: 'brother@example.com',
+				first_name: 'James',
+				last_name: null,
+			})
+		})
+
+		it('rejects an invalid invitation id or email', () => {
+			expect(
+				adminUpdateMemberInviteSchema.safeParse({
+					inviteId: 'not-a-uuid',
+					email: 'invalid-email',
+					first_name: '',
+					last_name: '',
+				}).success,
+			).toBe(false)
 		})
 	})
 })

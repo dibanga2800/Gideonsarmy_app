@@ -11,13 +11,15 @@ import {
 	createMemberManuallyAction,
 	inviteMemberAction,
 	resendMemberInviteAction,
+	updateMemberInviteAction,
 } from '@/server/actions/member-actions'
 import { AlertNotice } from '@/components/alert-notice'
 import { MembersPagination } from '@/components/members-pagination'
+import { ListPagination } from '@/components/list-pagination'
 import { PageHeader } from '@/components/page-header'
 import { memberStatusFilterSchema } from '@/lib/validation/member'
 import { membershipStatusLabel, roleLabel } from '@/lib/members/display'
-import { DEFAULT_LIST_PAGE_SIZE } from '@/lib/list-pagination'
+import { DEFAULT_LIST_PAGE_SIZE, parsePageParam } from '@/lib/list-pagination'
 import {
 	cardComfortClass,
 	emptyStateClass,
@@ -45,9 +47,11 @@ interface MembersPageProps {
 	searchParams: {
 		status?: string
 		page?: string
+		invitePage?: string
 		error?: string
 		reason?: string
 		invited?: string
+		updated?: string
 		email?: string
 		approved?: string
 	}
@@ -63,6 +67,8 @@ const inviteErrorMessage = (reason?: string) => {
 			return 'Enter a valid email address and try again.'
 		case 'denied':
 			return 'You do not have permission to invite members.'
+		case 'not-found':
+			return 'That invitation has already been used or no longer exists.'
 		default:
 			return 'That invitation could not be completed. Try again, or add the member manually.'
 	}
@@ -85,12 +91,13 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 	const filter = memberStatusFilterSchema.safeParse(searchParams.status ?? 'ACTIVE')
 	const status = filter.success && filter.data !== 'all' ? filter.data : undefined
 	const statusParam = filter.success ? filter.data : 'ACTIVE'
-	const page = Number.parseInt(searchParams.page ?? '1', 10)
+	const page = parsePageParam(searchParams.page)
+	const invitePage = parsePageParam(searchParams.invitePage)
 
 	const [directory, pendingPage, invites, emailStatus] = await Promise.all([
 		listMembersPageForAdmin({
 			status,
-			page: Number.isFinite(page) ? page : 1,
+			page,
 			pageSize: DEFAULT_LIST_PAGE_SIZE,
 		}),
 		listMembersPageForAdmin({
@@ -98,16 +105,43 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 			page: 1,
 			pageSize: 50,
 		}),
-		listInvitesForAdmin(),
+		listInvitesForAdmin({
+			page: invitePage,
+			pageSize: DEFAULT_LIST_PAGE_SIZE,
+		}),
 		getAdminEmailStatus(),
 	])
 
-	if (!directory || !pendingPage) {
+	if (!directory || !pendingPage || !invites) {
 		redirect('/dashboard')
 	}
 
-	const openInvites = invites ?? []
+	const openInvites = invites.invites
 	const filterQuery = statusParam === 'ACTIVE' ? undefined : statusParam === 'all' ? 'all' : statusParam
+	const filterHref = (nextStatus?: string) => {
+		const params = new URLSearchParams()
+		if (nextStatus) {
+			params.set('status', nextStatus)
+		}
+		if (invitePage > 1) {
+			params.set('invitePage', String(invitePage))
+		}
+		const query = params.toString()
+		return query ? `/admin/members?${query}` : '/admin/members'
+	}
+	const inviteHrefForPage = (nextPage: number) => {
+		const params = new URLSearchParams()
+		if (filterQuery) {
+			params.set('status', filterQuery)
+		}
+		if (directory.page > 1) {
+			params.set('page', String(directory.page))
+		}
+		if (nextPage > 1) {
+			params.set('invitePage', String(nextPage))
+		}
+		return `/admin/members?${params.toString()}`
+	}
 
 	return (
 		<main className={pageContentClass}>
@@ -132,6 +166,16 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 						{searchParams.email === '0'
 							? 'The invitation was saved, but the email could not be sent. Ask him to open Signup or Login with that address, or add him manually.'
 							: 'The invitation has been sent. He remains pending until you approve membership.'}
+					</AlertNotice>
+				</div>
+			) : null}
+
+			{searchParams.updated === '1' ? (
+				<div className="mt-6">
+					<AlertNotice kind={searchParams.email === '0' ? 'danger' : 'success'} title="Invitation updated">
+						{searchParams.email === '0'
+							? 'The invitation details were saved, but the updated email could not be sent. Use Resend email to try again.'
+							: 'The invitation details were saved and a fresh email was sent.'}
 					</AlertNotice>
 				</div>
 			) : null}
@@ -198,7 +242,7 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 				<div className={cardComfortClass}>
 					<p className={eyebrowClass}>Open invites</p>
 					<p className="mt-3 font-serif text-3xl font-semibold text-navy-950">
-						{openInvites.length}
+						{invites.total}
 					</p>
 					<p className="mt-1 text-sm text-navy-800/80">Waiting to sign in</p>
 				</div>
@@ -251,22 +295,22 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 						<h2 className={`${sectionHeadingClass} mt-2`}>Fellowship members</h2>
 					</div>
 					<nav className="flex flex-wrap gap-2" aria-label="Filter members">
-						<FilterLink href="/admin/members" active={statusParam === 'ACTIVE'}>
+						<FilterLink href={filterHref()} active={statusParam === 'ACTIVE'}>
 							Active
 						</FilterLink>
 						<FilterLink
-							href="/admin/members?status=PENDING"
+							href={filterHref('PENDING')}
 							active={statusParam === 'PENDING'}
 						>
 							Pending
 						</FilterLink>
 						<FilterLink
-							href="/admin/members?status=INACTIVE"
+							href={filterHref('INACTIVE')}
 							active={statusParam === 'INACTIVE'}
 						>
 							Inactive
 						</FilterLink>
-						<FilterLink href="/admin/members?status=all" active={statusParam === 'all'}>
+						<FilterLink href={filterHref('all')} active={statusParam === 'all'}>
 							All
 						</FilterLink>
 					</nav>
@@ -331,6 +375,7 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 							total={directory.total}
 							pageSize={directory.pageSize}
 							status={filterQuery}
+							invitePage={invitePage}
 						/>
 					</div>
 				)}
@@ -398,23 +443,100 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 						</div>
 					</form>
 					{openInvites.length > 0 ? (
-						<ul className="mt-6 space-y-3 border-t border-cream-100 pt-4 text-sm text-navy-800">
-							{openInvites.map((invite) => (
-								<li
-									key={invite.id}
-									className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
-								>
-									<span>{invite.email} · waiting to sign in</span>
-									<form action={resendMemberInviteAction}>
-										<input type="hidden" name="email" value={invite.email} />
-										<button type="submit" className={secondaryButtonClass}>
-											Resend email
-										</button>
-									</form>
-								</li>
-							))}
-						</ul>
-					) : null}
+						<>
+							<ul className="mt-6 space-y-4 border-t border-cream-100 pt-4 text-sm text-navy-800">
+								{openInvites.map((invite) => (
+									<li
+										key={invite.id}
+										className="rounded-xl border border-cream-200 bg-cream-50 p-4"
+									>
+										<p className="mb-3 text-xs font-semibold uppercase tracking-wide text-navy-700">
+											Waiting to sign in
+										</p>
+										<form
+											action={updateMemberInviteAction}
+											className="grid gap-3 sm:grid-cols-2"
+										>
+											<input type="hidden" name="inviteId" value={invite.id} />
+											<div className="sm:col-span-2">
+												<label
+													htmlFor={`invite-email-${invite.id}`}
+													className={labelClass}
+												>
+													Email
+												</label>
+												<input
+													id={`invite-email-${invite.id}`}
+													name="email"
+													type="email"
+													required
+													maxLength={254}
+													defaultValue={invite.email}
+													className={inputClass}
+												/>
+											</div>
+											<div>
+												<label
+													htmlFor={`invite-first-${invite.id}`}
+													className={labelClass}
+												>
+													First name
+												</label>
+												<input
+													id={`invite-first-${invite.id}`}
+													name="first_name"
+													type="text"
+													maxLength={80}
+													defaultValue={invite.first_name ?? ''}
+													className={inputClass}
+												/>
+											</div>
+											<div>
+												<label
+													htmlFor={`invite-last-${invite.id}`}
+													className={labelClass}
+												>
+													Last name
+												</label>
+												<input
+													id={`invite-last-${invite.id}`}
+													name="last_name"
+													type="text"
+													maxLength={80}
+													defaultValue={invite.last_name ?? ''}
+													className={inputClass}
+												/>
+											</div>
+											<div className="flex flex-wrap gap-2 sm:col-span-2">
+												<button type="submit" className={primaryButtonClass}>
+													Save &amp; resend invitation
+												</button>
+											</div>
+										</form>
+										<form action={resendMemberInviteAction} className="mt-2">
+											<input type="hidden" name="email" value={invite.email} />
+											<button type="submit" className={secondaryButtonClass}>
+												Resend current invitation
+											</button>
+										</form>
+									</li>
+								))}
+							</ul>
+							<ListPagination
+								page={invites.page}
+								totalPages={invites.totalPages}
+								total={invites.total}
+								pageSize={invites.pageSize}
+								hrefForPage={inviteHrefForPage}
+								label="Invitation list pages"
+								className="mt-4 flex flex-col gap-3 border-t border-cream-100 pt-4 text-sm text-navy-800 sm:flex-row sm:items-center sm:justify-between"
+							/>
+						</>
+					) : (
+						<p className="mt-6 border-t border-cream-100 pt-4 text-sm text-navy-800/75">
+							There are no open email invitations.
+						</p>
+					)}
 				</div>
 
 				<div className={cardComfortClass}>

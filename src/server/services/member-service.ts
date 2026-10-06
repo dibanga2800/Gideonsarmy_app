@@ -7,6 +7,7 @@ import type {
 	AdminChangePassword,
 	AdminCreateMember,
 	AdminInviteMember,
+	AdminUpdateMemberInvite,
 	OwnProfileUpdate,
 } from '@/lib/validation/member'
 import { getCurrentSession } from '@/server/services/auth-service'
@@ -19,7 +20,12 @@ import {
 	updateOwnPhotoPath,
 	updateOwnProfileRecord,
 } from '@/server/repositories/profile-repository'
-import { createMemberInviteRecord, findOpenInviteByEmail, listOpenMemberInvites } from '@/server/repositories/invite-repository'
+import {
+	createMemberInviteRecord,
+	findOpenInviteByEmail,
+	listOpenMemberInvites,
+	updateMemberInviteRecord,
+} from '@/server/repositories/invite-repository'
 import { memberInviteEmail } from '@/lib/notifications/email-templates'
 import { sendDirectEmail } from '@/server/notifications/notification-service'
 import { memberDisplayName } from '@/lib/members/display'
@@ -486,13 +492,13 @@ export const updateMemberRecord = async (input: {
 	return { ok: true, profile }
 }
 
-export const listInvitesForAdmin = async () => {
+export const listInvitesForAdmin = async (input: { page?: number; pageSize?: number }) => {
 	const session = await getCurrentSession()
 	if (!canAccessAdmin(session.access)) {
 		return null
 	}
 
-	return listOpenMemberInvites()
+	return listOpenMemberInvites(input)
 }
 
 export const inviteMember = async (
@@ -595,6 +601,53 @@ export const resendMemberInviteEmail = async (
 	}
 
 	return { ok: true }
+}
+
+export const updateMemberInvite = async (
+	input: AdminUpdateMemberInvite,
+): Promise<
+	| { ok: true; emailed: boolean }
+	| { ok: false; message: string; code: 'exists' | 'used' | 'database' | 'invalid' | 'denied' }
+> => {
+	const session = await getCurrentSession()
+
+	if (!canAccessAdmin(session.access) || !session.profile) {
+		logEvent({
+			operation: 'members.updateInvite',
+			status: 'denied',
+			errorCategory: 'authorization',
+		})
+		return {
+			ok: false,
+			code: 'denied',
+			message: 'You do not have permission to edit invitations.',
+		}
+	}
+
+	const updated = await updateMemberInviteRecord(input)
+	if (!updated.ok) {
+		const messages = {
+			exists: 'A member or another invitation already uses that email address.',
+			used: 'That invitation has already been used or no longer exists.',
+			database: 'The invitation could not be updated. Try again.',
+			invalid: 'Enter a valid email address and optional names.',
+		} as const
+		return { ok: false, code: updated.reason, message: messages[updated.reason] }
+	}
+
+	const mail = memberInviteEmail({
+		firstName: updated.invite.first_name,
+		inviterName: memberDisplayName(session.profile),
+	})
+	const sent = await sendDirectEmail({ ...mail, to: updated.invite.email })
+
+	logEvent({
+		operation: 'members.updateInvite',
+		status: sent.ok ? 'ok' : 'error',
+		errorCategory: sent.ok ? undefined : 'email',
+	})
+
+	return { ok: true, emailed: sent.ok }
 }
 
 export const createMemberManually = async (

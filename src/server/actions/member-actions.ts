@@ -8,6 +8,7 @@ import {
 	adminChangePasswordSchema,
 	adminInviteMemberSchema,
 	adminMemberUpdateSchema,
+	adminUpdateMemberInviteSchema,
 	memberIdSchema,
 	ownProfileUpdateSchema,
 } from '@/lib/validation/member'
@@ -23,6 +24,7 @@ import {
 	saveOwnPortrait,
 	saveOwnAnniversaryPhoto,
 	updateMemberRecord,
+	updateMemberInvite,
 	updateOwnProfile,
 } from '@/server/services/member-service'
 
@@ -254,6 +256,27 @@ export const resendMemberInviteAction = async (formData: FormData) => {
 
 	revalidatePath('/admin/members')
 	redirect('/admin/members?invited=1')
+}
+
+export const updateMemberInviteAction = async (formData: FormData) => {
+	const parsed = adminUpdateMemberInviteSchema.safeParse({
+		inviteId: formValue(formData, 'inviteId'),
+		email: formValue(formData, 'email'),
+		first_name: formValue(formData, 'first_name'),
+		last_name: formValue(formData, 'last_name'),
+	})
+
+	if (!parsed.success) {
+		redirect('/admin/members?error=invite&reason=invalid')
+	}
+
+	const result = await updateMemberInvite(parsed.data)
+	if (!result.ok) {
+		redirect(`/admin/members?error=invite&reason=${result.code}`)
+	}
+
+	revalidatePath('/admin/members')
+	redirect(result.emailed ? '/admin/members?updated=1' : '/admin/members?updated=1&email=0')
 }
 
 export const createMemberManuallyAction = async (formData: FormData) => {

@@ -2,7 +2,17 @@ import { z } from 'zod'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 import { logEvent } from '@/lib/logging'
-import type { AdminInviteMember } from '@/lib/validation/member'
+import type {
+	AdminInviteMember,
+	AdminUpdateMemberInvite,
+} from '@/lib/validation/member'
+import {
+	normalisePage,
+	normalisePageSize,
+	pageOffset,
+	totalPagesFor,
+	DEFAULT_LIST_PAGE_SIZE,
+} from '@/lib/list-pagination'
 
 const inviteSchema = z.object({
 	id: z.string().uuid(),
@@ -17,6 +27,18 @@ const inviteSchema = z.object({
 export type MemberInvite = z.infer<typeof inviteSchema>
 
 export type InviteCreateResult =
+	| { ok: true; invite: MemberInvite }
+	| { ok: false; reason: 'exists' | 'used' | 'database' | 'invalid' }
+
+export interface MemberInvitePage {
+	invites: MemberInvite[]
+	total: number
+	page: number
+	pageSize: number
+	totalPages: number
+}
+
+export type InviteUpdateResult =
 	| { ok: true; invite: MemberInvite }
 	| { ok: false; reason: 'exists' | 'used' | 'database' | 'invalid' }
 
@@ -181,46 +203,126 @@ export const createMemberInviteRecord = async (
 	return { ok: false, reason: 'database' }
 }
 
-export const listMemberInvites = async () => {
+export const updateMemberInviteRecord = async (
+	input: AdminUpdateMemberInvite,
+): Promise<InviteUpdateResult> => {
 	const supabase = createSupabaseServerClient()
-	const { data, error } = await supabase
-		.from('member_invites')
-		.select('id, email, first_name, last_name, invited_by, accepted_at, created_at')
-		.order('created_at', { ascending: false })
-		.limit(50)
+	const { data, error } = await supabase.rpc('admin_update_member_invite', {
+		p_invite_id: input.inviteId,
+		p_email: input.email,
+		p_first_name: input.first_name,
+		p_last_name: input.last_name,
+	})
 
-	if (!error && Array.isArray(data)) {
-		return data.flatMap((row) => {
-			const parsed = parseInvite(row)
-			return parsed ? [parsed] : []
-		})
+	if (!error) {
+		const invite = parseInvite(data)
+		return invite ? { ok: true, invite } : { ok: false, reason: 'database' }
 	}
 
-	const admin = createSupabaseAdminClient()
-	const { data: adminData, error: adminError } = await admin
-		.from('member_invites')
-		.select('id, email, first_name, last_name, invited_by, accepted_at, created_at')
-		.order('created_at', { ascending: false })
-		.limit(50)
+	const message = (error.message ?? '').toLowerCase()
+	if (
+		message.includes('already exists')
+		|| message.includes('already uses that email')
+		|| error.code === '23505'
+	) {
+		return { ok: false, reason: 'exists' }
+	}
+	if (message.includes('already been used') || message.includes('not found')) {
+		return { ok: false, reason: 'used' }
+	}
+	if (message.includes('valid email') || message.includes('valid first') || message.includes('valid last')) {
+		return { ok: false, reason: 'invalid' }
+	}
 
-	if (adminError) {
+	logEvent({
+		operation: 'members.updateInvite',
+		status: 'error',
+		errorCategory: 'database',
+		errorCode: error.code,
+	})
+	return { ok: false, reason: 'database' }
+}
+
+export const listOpenMemberInvites = async (input: {
+	page?: number
+	pageSize?: number
+}): Promise<MemberInvitePage | null> => {
+	const supabase = createSupabaseServerClient()
+	const pageSize = normalisePageSize(input.pageSize ?? DEFAULT_LIST_PAGE_SIZE)
+	const requestedPage = Math.max(1, Math.floor(input.page ?? 1) || 1)
+	const columns = 'id, email, first_name, last_name, invited_by, accepted_at, created_at'
+	let queryClient = supabase
+	let { count, error: countError } = await queryClient
+		.from('member_invites')
+		.select('id', { count: 'exact', head: true })
+		.is('accepted_at', null)
+
+	if (countError) {
+		const admin = createSupabaseAdminClient()
+		queryClient = admin
+		const adminCount = await queryClient
+			.from('member_invites')
+			.select('id', { count: 'exact', head: true })
+			.is('accepted_at', null)
+		count = adminCount.count
+		countError = adminCount.error
+	}
+
+	if (countError) {
 		logEvent({
 			operation: 'members.listInvites',
 			status: 'error',
 			errorCategory: 'database',
-			errorCode: adminError.code,
+			errorCode: countError.code,
 		})
-		return []
+		return null
 	}
 
-	if (!Array.isArray(adminData)) {
-		return []
+	const total = count ?? 0
+	const totalPages = totalPagesFor(total, pageSize)
+	const page = normalisePage(requestedPage, totalPages)
+	const from = pageOffset(page, pageSize)
+	let { data, error } = await queryClient
+		.from('member_invites')
+		.select(columns)
+		.is('accepted_at', null)
+		.order('created_at', { ascending: false })
+		.order('id', { ascending: true })
+		.range(from, from + pageSize - 1)
+
+	if (error && queryClient === supabase) {
+		const admin = createSupabaseAdminClient()
+		const adminRows = await admin
+			.from('member_invites')
+			.select(columns)
+			.is('accepted_at', null)
+			.order('created_at', { ascending: false })
+			.order('id', { ascending: true })
+			.range(from, from + pageSize - 1)
+		data = adminRows.data
+		error = adminRows.error
 	}
 
-	return adminData.flatMap((row) => {
-		const parsed = parseInvite(row)
-		return parsed ? [parsed] : []
-	})
+	if (error) {
+		logEvent({
+			operation: 'members.listInvites',
+			status: 'error',
+			errorCategory: 'database',
+			errorCode: error.code,
+		})
+		return null
+	}
+
+	return {
+		invites: (data ?? []).flatMap((row) => {
+			const parsed = parseInvite(row)
+			return parsed ? [parsed] : []
+		}),
+		total,
+		page,
+		pageSize,
+		totalPages,
+	}
 }
 
 export const findOpenInviteByEmail = async (email: string): Promise<MemberInvite | null> => {
@@ -271,46 +373,4 @@ export const markInviteAcceptedByEmail = async (email: string): Promise<boolean>
 	}
 
 	return Array.isArray(data) && data.length > 0
-}
-
-/** Open invites only: not accepted, and no member profile for that email yet. */
-export const listOpenMemberInvites = async (): Promise<MemberInvite[]> => {
-	const invites = await listMemberInvites()
-	const candidates = invites.filter((invite) => !invite.accepted_at)
-
-	if (candidates.length === 0) {
-		return []
-	}
-
-	const admin = createSupabaseAdminClient()
-	const { data: profiles, error } = await admin.from('profiles').select('email')
-
-	if (error) {
-		logEvent({
-			operation: 'members.listOpenInvites',
-			status: 'error',
-			errorCategory: 'database',
-			errorCode: error.code,
-		})
-		return candidates
-	}
-
-	const joinedEmails = new Set(
-		(profiles ?? [])
-			.map((row) => (typeof row.email === 'string' ? row.email.trim().toLowerCase() : ''))
-			.filter(Boolean),
-	)
-
-	const stillOpen: MemberInvite[] = []
-
-	for (const invite of candidates) {
-		if (joinedEmails.has(invite.email.trim().toLowerCase())) {
-			await markInviteAcceptedByEmail(invite.email)
-			continue
-		}
-
-		stillOpen.push(invite)
-	}
-
-	return stillOpen
 }

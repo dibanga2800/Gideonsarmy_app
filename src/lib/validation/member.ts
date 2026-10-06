@@ -152,6 +152,10 @@ export const adminInviteMemberSchema = z.object({
 	last_name: z.preprocess(emptyToNull, z.string().trim().max(80).nullable()),
 })
 
+export const adminUpdateMemberInviteSchema = adminInviteMemberSchema.extend({
+	inviteId: z.string().uuid(),
+})
+
 export const memberStatusFilterSchema = z.union([
 	z.literal('all'),
 	z.literal('PENDING'),
@@ -162,6 +166,7 @@ export const memberStatusFilterSchema = z.union([
 export type OwnProfileUpdate = z.infer<typeof ownProfileUpdateSchema>
 export type AdminMemberUpdate = z.infer<typeof adminMemberUpdateSchema>
 export type AdminInviteMember = z.infer<typeof adminInviteMemberSchema>
+export type AdminUpdateMemberInvite = z.infer<typeof adminUpdateMemberInviteSchema>
 
 export const adminCreateMemberSchema = z.object({
 	email: z.string().trim().email().max(254).transform((value) => value.toLowerCase()),
