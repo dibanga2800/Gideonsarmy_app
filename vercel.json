@@ -3,6 +3,14 @@
 		{
 			"path": "/api/jobs/notifications",
 			"schedule": "0 18 * * *"
+		},
+		{
+			"path": "/api/jobs/celebrations",
+			"schedule": "0 5 * * *"
+		},
+		{
+			"path": "/api/jobs/celebrations",
+			"schedule": "0 6 * * *"
 		}
 	]
 }

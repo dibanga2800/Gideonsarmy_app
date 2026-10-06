@@ -32,6 +32,15 @@ export const getLondonYearMonthDay = (from = new Date()) => {
 	}
 }
 
+const getLondonHour = (from: Date) =>
+	new Intl.DateTimeFormat('en-GB', {
+		timeZone: 'Europe/London',
+		hour: '2-digit',
+		hourCycle: 'h23',
+	}).format(from)
+
+export const isLondonSixAm = (from = new Date()) => getLondonHour(from) === '06'
+
 const sameLondonDate = (left: Date, right: Date) => {
 	const first = getLondonYearMonthDay(left)
 	const second = getLondonYearMonthDay(right)

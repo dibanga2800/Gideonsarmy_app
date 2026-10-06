@@ -35,7 +35,7 @@ Copy `.env.example` to `.env.local` for local work. In **Vercel → Project → 
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
-| `NEXT_PUBLIC_SITE_URL` | Production site URL, e.g. `https://your-domain` or `https://your-app.vercel.app` |
+| `NEXT_PUBLIC_SITE_URL` | `https://gideonsarmy.rccglivingwater.org` |
 
 ### Required (server-only — never `NEXT_PUBLIC_*`)
 
@@ -67,20 +67,29 @@ See `docs/email.md` for Gmail App Password setup.
 1. Import the Git repository into Vercel.
 2. Set the environment variables above for Production.
 3. Deploy. Framework preset: Next.js.
-4. Confirm `vercel.json` is present so the hourly cron runs:
+4. Confirm `vercel.json` schedules the general notification job and the
+   London 6am celebration job:
 
 ```json
 {
   "crons": [
     {
       "path": "/api/jobs/notifications",
-      "schedule": "0 * * * *"
+      "schedule": "0 18 * * *"
+    },
+    {
+      "path": "/api/jobs/celebrations",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/jobs/celebrations",
+      "schedule": "0 6 * * *"
     }
   ]
 }
 ```
 
-Vercel Cron calls `GET /api/jobs/notifications` hourly. The route requires `Authorization: Bearer CRON_SECRET` (Vercel injects this for configured crons when `CRON_SECRET` is set; for manual tests, send the header yourself).
+Vercel Cron uses UTC and Hobby schedules can run up to 59 minutes after the configured hour. Two daily celebration schedules cover GMT and BST; `/api/jobs/celebrations` sends only during the Europe/London 6:00–6:59am hour. The general job continues to handle dues and event reminders at 18:00 UTC and does not send birthday or anniversary email.
 
 ### Manual cron smoke checks
 
@@ -111,7 +120,8 @@ Confirm in the Supabase dashboard:
 
 - Google Auth enabled
 - Site URL = production `NEXT_PUBLIC_SITE_URL`
-- Redirect URLs include `{SITE_URL}/auth/callback`
+- Redirect URLs include `https://gideonsarmy.rccglivingwater.org/auth/callback`
+- Keep `http://localhost:3002/auth/callback` for local development and the Vercel hostname callback if it is still used
 - Email public sign-ups remain disabled (invites / admin create only)
 - RLS enabled on member tables
 - Service role key never exposed as `NEXT_PUBLIC_*`
@@ -125,8 +135,9 @@ In Google Cloud OAuth client (Web application):
 
 In Supabase **Authentication → URL configuration**:
 
-1. **Site URL** = production `NEXT_PUBLIC_SITE_URL`
-2. Additional redirect: `{SITE_URL}/auth/callback`
+1. **Site URL** = `https://gideonsarmy.rccglivingwater.org`
+2. Additional redirect: `https://gideonsarmy.rccglivingwater.org/auth/callback`
+3. Keep any required local-development or Vercel-hostname callbacks in the allow-list.
 
 ## Security headers
 
@@ -141,8 +152,8 @@ In Supabase **Authentication → URL configuration**:
 5. Member can open Dashboard, Dues, Events, Celebrations
 6. Admin can record a payment against outstanding months
 7. Celebration / notice path works for an admin (manual send or Notices page)
-8. `GET /api/jobs/notifications` without `CRON_SECRET` returns **401**
-9. With `Authorization: Bearer CRON_SECRET`, the job route returns **200** and does not duplicate dues/notifications on a second run
+8. Both `GET /api/jobs/notifications` and `GET /api/jobs/celebrations` return **401** without `CRON_SECRET`
+9. With the cron authorization header, the general route returns **200** and the celebrations route sends only during the first 6am hour in Europe/London; repeated runs do not duplicate sent notifications.
 
 ## Out of scope for the initial cutover
 

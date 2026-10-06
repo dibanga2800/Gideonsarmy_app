@@ -33,7 +33,7 @@ A valid Google account or password is not fellowship membership. New users are c
 - `/admin/payments` — record received transfers, leftover submitted reviews, and account details
 - `/admin/events/new` — create a stored gathering
 - `/admin/events/[id]` — edit or delete a stored gathering
-- `/api/jobs/notifications` — secret-protected scheduled jobs
+- `/api/jobs/notifications` and `/api/jobs/celebrations` — secret-protected scheduled jobs
 
 Authorization is enforced in middleware, page loaders, and RLS.
 

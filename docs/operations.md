@@ -25,9 +25,9 @@ If payment-start updates fail with PostgreSQL `42702` (ambiguous `due_month`), a
 
 Notification sending, dues generation, and reminder schedules must be idempotent. Duplicate execution must not create duplicate notifications or duplicate dues rows.
 
-The hourly route is `GET` or `POST` `/api/jobs/notifications` with `Authorization: Bearer CRON_SECRET`.
+The daily general route is `GET` or `POST` `/api/jobs/notifications`. Birthday and wedding-anniversary emails use `GET` or `POST` `/api/jobs/celebrations`; Vercel calls that endpoint at 05:00 and 06:00 UTC, and it sends only during the Europe/London 06:00–06:59 hour (to account for GMT/BST).
 
-On Vercel, `vercel.json` schedules that path every hour. Production must set `CRON_SECRET` in Vercel environment variables. Requests without the bearer token must receive `401`.
+On Vercel, `vercel.json` schedules these jobs. Production must set `CRON_SECRET` in Vercel environment variables. Requests without the bearer token must receive `401`.
 
 Use keys such as:
 
@@ -55,7 +55,7 @@ Email delivery is configured with Gmail App Password (`EMAIL_MODE=gmail`), or `E
 2. Confirm Supabase migrations through `0018` are applied
 3. Confirm Google OAuth redirect and Supabase Site URL match production
 4. After deploy, run the smoke checklist in `docs/deployment.md`
-5. If cron misbehaves, verify `CRON_SECRET` and Vercel Cron logs for `/api/jobs/notifications`
+5. If cron misbehaves, verify `CRON_SECRET` and Vercel Cron logs for both `/api/jobs/notifications` and `/api/jobs/celebrations`.
 
 ## Time
 

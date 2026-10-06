@@ -110,14 +110,29 @@ const parsePending = (value: unknown) => {
 	})
 }
 
-export const sendDueNotifications = async (now = new Date()) => {
+export const sendDueNotifications = async (
+	now = new Date(),
+	filters: { types?: NotificationType[]; memberIds?: string[] } = {},
+) => {
+	if (filters.types?.length === 0 || filters.memberIds?.length === 0) {
+		return { sent: 0, failed: 0 }
+	}
+
 	const supabase = createSupabaseAdminClient()
-	const { data, error } = await supabase
+	let query = supabase
 		.from('notifications')
 		.select(NOTIFICATION_SELECT)
 		.eq('status', 'PENDING')
 		.lte('scheduled_at', now.toISOString())
-		.limit(200)
+
+	if (filters.types) {
+		query = query.in('notification_type', filters.types)
+	}
+	if (filters.memberIds) {
+		query = query.in('member_id', filters.memberIds)
+	}
+
+	const { data, error } = await query.limit(200)
 
 	if (error) {
 		logEvent({

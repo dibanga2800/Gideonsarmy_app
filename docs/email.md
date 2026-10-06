@@ -86,5 +86,4 @@ retries stay identical while next year’s message can differ.
    - **Send this month's emails** — every birthday and anniversary in the current
      Europe/London month (for testing without waiting for the day)
 
-Scheduled production sending still runs through
-`/api/jobs/notifications` with `Authorization: Bearer CRON_SECRET`.
+Scheduled production sending for birthdays and wedding anniversaries runs through `/api/jobs/celebrations` at 6:00am Europe/London. Other scheduled notifications run through `/api/jobs/notifications`.

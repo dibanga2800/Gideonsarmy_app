@@ -48,13 +48,14 @@ export const runScheduledJobs = async (now = new Date()) => {
 	const members = await listActiveMembersForJobs()
 	const planned = [
 		...(await buildDuesReminderNotifications(members, now)),
-		...buildCelebrationNotices(members, { now }),
 		...(await buildEventNotices(members, now)),
 	]
 
 	const enqueued = await enqueueNotifications(planned)
 	const inApp = await enqueueInAppNotices(buildMonthCelebrationDigests(members, now))
-	const sendResult = await sendDueNotifications(now)
+	const sendResult = await sendDueNotifications(now, {
+		types: ['DUES_REMINDER', 'EVENT_REMINDER', 'MEMBER_INVITE'],
+	})
 
 	logEvent({
 		operation: 'jobs.notifications',
@@ -63,6 +64,33 @@ export const runScheduledJobs = async (now = new Date()) => {
 
 	return {
 		enqueued: enqueued + inApp,
+		...sendResult,
+	}
+}
+
+const celebrationNotificationTypes = [
+	'BIRTHDAY_CELEBRANT',
+	'BIRTHDAY_FELLOWSHIP',
+	'ANNIVERSARY_CELEBRANT',
+	'ANNIVERSARY_FELLOWSHIP',
+] as const
+
+export const runScheduledCelebrationJobs = async (now = new Date()) => {
+	const members = await listActiveMembersForJobs()
+	const notices = buildCelebrationNotices(members, { now })
+	const enqueued = await enqueueNotifications(notices)
+	const sendResult = await sendDueNotifications(now, {
+		types: [...celebrationNotificationTypes],
+	})
+
+	logEvent({
+		operation: 'jobs.celebrations',
+		status: sendResult.failed > 0 ? 'error' : 'ok',
+		errorCategory: sendResult.failed > 0 ? 'email' : undefined,
+	})
+
+	return {
+		enqueued,
 		...sendResult,
 	}
 }

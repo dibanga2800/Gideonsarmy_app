@@ -5,6 +5,7 @@ import {
 	isCelebrationInLondonMonth,
 	isCelebrationOnLondonDate,
 	isCelebrationSevenDaysBefore,
+	isLondonSixAm,
 	isGregorianLeapYear,
 	nextLondonYearMonth,
 	observedMonthDay,
@@ -26,6 +27,20 @@ describe('celebration dates', () => {
 	it('matches seven days before the observed celebration', () => {
 		expect(isCelebrationSevenDaysBefore(10, 8, new Date('2026-10-01T12:00:00.000Z'))).toBe(true)
 		expect(isCelebrationSevenDaysBefore(10, 8, new Date('2026-10-08T12:00:00.000Z'))).toBe(false)
+	})
+
+	it('recognizes 6am in London across GMT and BST', () => {
+		expect(isLondonSixAm(new Date('2026-10-06T05:00:00.000Z'))).toBe(true)
+		expect(isLondonSixAm(new Date('2026-12-06T06:00:00.000Z'))).toBe(true)
+		expect(isLondonSixAm(new Date('2026-10-06T04:00:00.000Z'))).toBe(false)
+		expect(isLondonSixAm(new Date('2026-10-06T06:00:00.000Z'))).toBe(false)
+	})
+
+	it('moves the UTC schedule at UK daylight-saving transitions', () => {
+		expect(isLondonSixAm(new Date('2026-03-29T05:00:00.000Z'))).toBe(true)
+		expect(isLondonSixAm(new Date('2026-03-29T06:00:00.000Z'))).toBe(false)
+		expect(isLondonSixAm(new Date('2026-10-25T05:00:00.000Z'))).toBe(false)
+		expect(isLondonSixAm(new Date('2026-10-25T06:00:00.000Z'))).toBe(true)
 	})
 
 	it('lists a birthday in the current London month without a year', () => {

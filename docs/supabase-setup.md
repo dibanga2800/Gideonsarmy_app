@@ -124,23 +124,27 @@ https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
 4. Paste the Google Client ID and Client Secret
 5. In Supabase URL configuration, set **Site URL** to your app origin:
    - Local: `http://localhost:3002`
-   - Production: the same value as `NEXT_PUBLIC_SITE_URL` (custom domain or `https://*.vercel.app`)
+   - Production: `https://gideonsarmy.rccglivingwater.org`
 6. Add redirect URLs:
 
 ```text
 http://localhost:3002/auth/callback
-https://YOUR_PRODUCTION_HOST/auth/callback
+https://gideonsarmy.rccglivingwater.org/auth/callback
 ```
+
+Keep any Vercel-hostname callback that is still in use; do not remove the local
+callback needed for development.
 
 7. In **Authentication → Providers → Email**, enable Email. Keep public sign-ups disabled if the dashboard allows it; invited passwords are created by the application through the service role after an administrator invite. Do not store passwords in application tables.
 
 ## Production cutover (hosted project)
 
-Before sending brothers to the Vercel URL:
+Before sending brothers to the production URL:
 
 1. Confirm migrations **0001** through **0018** have been applied on the live project (re-run is safe for the repair migrations when unsure).
 2. Especially apply `0016`, `0017`, and `0018` if payment-start updates still fail with `42702`, invites cannot be created, or accepted invites stay open.
-3. Set Supabase **Site URL** and redirect URLs to the production site (above).
+3. Set Supabase **Site URL** to `https://gideonsarmy.rccglivingwater.org` and
+   add `https://gideonsarmy.rccglivingwater.org/auth/callback` to redirect URLs.
 4. Confirm Google Cloud OAuth still lists `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`.
 5. Confirm RLS remains enabled on member tables; never put the service-role key in a `NEXT_PUBLIC_*` variable.
 6. Follow the Vercel env and smoke checklist in `docs/deployment.md`.
