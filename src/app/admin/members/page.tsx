@@ -10,12 +10,11 @@ import {
 	approveMemberAction,
 	createMemberManuallyAction,
 	inviteMemberAction,
-	resendMemberInviteAction,
-	updateMemberInviteAction,
 } from '@/server/actions/member-actions'
 import { AlertNotice } from '@/components/alert-notice'
 import { MembersPagination } from '@/components/members-pagination'
 import { ListPagination } from '@/components/list-pagination'
+import { MemberInviteRow } from '@/components/member-invite-row'
 import { PageHeader } from '@/components/page-header'
 import { memberStatusFilterSchema } from '@/lib/validation/member'
 import { membershipStatusLabel, roleLabel } from '@/lib/members/display'
@@ -446,80 +445,13 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 						<>
 							<ul className="mt-6 space-y-4 border-t border-cream-100 pt-4 text-sm text-navy-800">
 								{openInvites.map((invite) => (
-									<li
+									<MemberInviteRow
 										key={invite.id}
-										className="rounded-xl border border-cream-200 bg-cream-50 p-4"
-									>
-										<p className="mb-3 text-xs font-semibold uppercase tracking-wide text-navy-700">
-											Waiting to sign in
-										</p>
-										<form
-											action={updateMemberInviteAction}
-											className="grid gap-3 sm:grid-cols-2"
-										>
-											<input type="hidden" name="inviteId" value={invite.id} />
-											<div className="sm:col-span-2">
-												<label
-													htmlFor={`invite-email-${invite.id}`}
-													className={labelClass}
-												>
-													Email
-												</label>
-												<input
-													id={`invite-email-${invite.id}`}
-													name="email"
-													type="email"
-													required
-													maxLength={254}
-													defaultValue={invite.email}
-													className={inputClass}
-												/>
-											</div>
-											<div>
-												<label
-													htmlFor={`invite-first-${invite.id}`}
-													className={labelClass}
-												>
-													First name
-												</label>
-												<input
-													id={`invite-first-${invite.id}`}
-													name="first_name"
-													type="text"
-													maxLength={80}
-													defaultValue={invite.first_name ?? ''}
-													className={inputClass}
-												/>
-											</div>
-											<div>
-												<label
-													htmlFor={`invite-last-${invite.id}`}
-													className={labelClass}
-												>
-													Last name
-												</label>
-												<input
-													id={`invite-last-${invite.id}`}
-													name="last_name"
-													type="text"
-													maxLength={80}
-													defaultValue={invite.last_name ?? ''}
-													className={inputClass}
-												/>
-											</div>
-											<div className="flex flex-wrap gap-2 sm:col-span-2">
-												<button type="submit" className={primaryButtonClass}>
-													Save &amp; resend invitation
-												</button>
-											</div>
-										</form>
-										<form action={resendMemberInviteAction} className="mt-2">
-											<input type="hidden" name="email" value={invite.email} />
-											<button type="submit" className={secondaryButtonClass}>
-												Resend current invitation
-											</button>
-										</form>
-									</li>
+										id={invite.id}
+										email={invite.email}
+										firstName={invite.first_name}
+										lastName={invite.last_name}
+									/>
 								))}
 							</ul>
 							<ListPagination
