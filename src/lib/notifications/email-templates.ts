@@ -302,7 +302,7 @@ export const birthdayFellowshipEmail = (
 		preheader: variant.preheader(celebrantName),
 		eyebrow: 'Fellowship notice',
 		heading: variant.heading,
-		greeting: 'Beloved brethren,',
+		greeting: 'Dear brothers,',
 		body: [variant.opening(celebrantName, celebrationDay), variant.callToAction],
 		closing: [variant.closing],
 	})
@@ -339,7 +339,7 @@ export const anniversaryFellowshipEmail = (
 		preheader: variant.preheader(celebrantName),
 		eyebrow: 'Fellowship notice',
 		heading: variant.heading,
-		greeting: 'Beloved brethren,',
+		greeting: 'Dear brothers,',
 		body: [variant.opening(celebrantName, celebrationDay), variant.callToAction],
 		closing: [variant.closing],
 	})

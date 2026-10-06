@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
 	anniversaryCelebrantEmail,
+	anniversaryFellowshipEmail,
 	birthdayCelebrantEmail,
+	birthdayFellowshipEmail,
 	duesReminderEmail,
 	emailFromStoredNotice,
 	escapeEmailHtml,
@@ -44,6 +46,22 @@ describe('email templates', () => {
 		expect(anniversary.html).toContain('Dear David,')
 		expect(anniversary.text).toMatch(/you and Debby/i)
 		expect(anniversary.html).toContain('Debby')
+	})
+
+	it('builds professional fellowship-wide birthday and anniversary emails', () => {
+		const birthday = birthdayFellowshipEmail('Bro David Onuoha Umeh', '6 October')
+		const anniversary = anniversaryFellowshipEmail('Bro David Ibanga', '6 October')
+
+		expect(birthday.subject).toBe('Birthday celebration · Bro David Onuoha Umeh')
+		expect(birthday.text).toContain('Dear brothers,')
+		expect(birthday.text).toContain('warm birthday wishes')
+		expect(birthday.text).toContain('remembering him in your prayers')
+		expect(birthday.html).toContain('Today, 6 October')
+
+		expect(anniversary.subject).toBe('Wedding anniversary celebration · Bro David Ibanga')
+		expect(anniversary.text).toContain('and his wife')
+		expect(anniversary.text).toContain('warm congratulations')
+		expect(anniversary.html).toContain('unity and joy in their home')
 	})
 
 	it('builds dues reminders with amount and CTA', () => {

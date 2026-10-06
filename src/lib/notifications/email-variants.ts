@@ -115,43 +115,14 @@ export const birthdayCelebrantVariants: readonly BirthdayCelebrantVariant[] = [
 
 export const birthdayFellowshipVariants: readonly BirthdayFellowshipVariant[] = [
 	{
-		subject: (name) => `Please pray with us · ${name}'s birthday`,
-		heading: 'A birthday in the fellowship',
-		preheader: (name) => `Today we give thanks for ${name}. Please send a godly greeting.`,
-		opening: (name, day) => `Today (${day}) we give thanks for our brother ${name}.`,
-		callToAction:
-			"Please send him a godly birthday greeting on the Gideon's Army WhatsApp group, that he may know the fellowship stands with him in prayer and thanksgiving.",
-		closing: 'The Lord bless our brother.',
-	},
-	{
-		subject: (name) => `Celebrate with us · ${name}'s birthday`,
-		heading: 'Let us honour our brother',
-		preheader: (name) => `${name} is celebrating today. A word of encouragement goes a long way.`,
+		subject: (name) => `Birthday celebration · ${name}`,
+		heading: 'Celebrating a brother',
+		preheader: (name) => `Join Gideon's Army in celebrating ${name} today.`,
 		opening: (name, day) =>
-			`Beloved brethren, ${name} marks his birthday on ${day}.`,
+			`Today, ${day}, we give thanks to God for our brother ${name} as he celebrates his birthday. We are grateful for his life and for the fellowship we share with him.`,
 		callToAction:
-			"Take a moment to send a warm, Christ-honouring message on the Gideon's Army WhatsApp group. A short greeting can strengthen a brother’s heart.",
-		closing: 'May our fellowship be known for love.',
-	},
-	{
-		subject: (name) => `Birthday thanksgiving · ${name}`,
-		heading: 'Join us in thanksgiving',
-		preheader: (name) => `Please remember ${name} in prayer and send birthday greetings.`,
-		opening: (name, day) =>
-			`On ${day} we rejoice with ${name} and thank God for his life among us.`,
-		callToAction:
-			"Kindly reach out on the Gideon's Army WhatsApp group with a birthday greeting and keep him in your prayers today.",
-		closing: 'Grace to you all.',
-	},
-	{
-		subject: (name) => `Our brother ${name} celebrates today`,
-		heading: 'A call to encourage',
-		preheader: (name) => `${name}'s birthday is today. Please encourage him.`,
-		opening: (name, day) =>
-			`Today (${day}) is a day of celebration for our brother ${name}.`,
-		callToAction:
-			"Please bless him with a thoughtful greeting on the Gideon's Army WhatsApp group, and thank God with us for his place in this fellowship.",
-		closing: 'The Lord keep him.',
+			'Please join us in sending him warm birthday wishes and remembering him in your prayers as he begins another year.',
+		closing: 'With warm regards in Christ,',
 	},
 ]
 
@@ -220,44 +191,14 @@ export const anniversaryCelebrantVariants: readonly AnniversaryCelebrantVariant[
 
 export const anniversaryFellowshipVariants: readonly AnniversaryFellowshipVariant[] = [
 	{
-		subject: (name) => `Please pray with us · ${name}'s wedding anniversary`,
-		heading: 'A wedding anniversary in the fellowship',
-		preheader: (name) => `Today we celebrate the wedding anniversary of ${name}.`,
+		subject: (name) => `Wedding anniversary celebration · ${name}`,
+		heading: 'Celebrating a marriage',
+		preheader: (name) => `Join Gideon's Army in celebrating ${name} and his wife today.`,
 		opening: (name, day) =>
-			`Today (${day}) we celebrate the wedding anniversary of ${name}.`,
+			`Today, ${day}, we give thanks for our brother ${name} and his wife as they celebrate their wedding anniversary. We rejoice with them and give thanks for the commitment they share.`,
 		callToAction:
-			"Please send a godly greeting on the Gideon's Army WhatsApp group, and keep their home in your prayers.",
-		closing: 'May God keep their home in peace and joy.',
-	},
-	{
-		subject: (name) => `Celebrate with us · ${name}'s anniversary`,
-		heading: 'Honour a marriage among us',
-		preheader: (name) => `${name} marks a wedding anniversary today. Please encourage them.`,
-		opening: (name, day) =>
-			`Beloved brethren, ${name} celebrates a wedding anniversary on ${day}.`,
-		callToAction:
-			"Take a moment to send warm greetings on the Gideon's Army WhatsApp group, and pray that Christ remains the centre of their home.",
-		closing: 'The Lord bless their household.',
-	},
-	{
-		subject: (name) => `Anniversary thanksgiving · ${name}`,
-		heading: 'Join us in rejoicing',
-		preheader: (name) => `Please remember ${name} on their wedding anniversary.`,
-		opening: (name, day) =>
-			`On ${day} we give thanks for the marriage of ${name}.`,
-		callToAction:
-			"Kindly share a Christ-honouring message on the Gideon's Army WhatsApp group and uphold them in prayer.",
-		closing: 'Grace and peace to their home.',
-	},
-	{
-		subject: (name) => `Our brother ${name} celebrates marriage today`,
-		heading: 'A call to encourage a home',
-		preheader: (name) => `${name}'s wedding anniversary is today.`,
-		opening: (name, day) =>
-			`Today (${day}) is a day of celebration for ${name} and their home.`,
-		callToAction:
-			"Please bless them with a thoughtful greeting on the Gideon's Army WhatsApp group, and thank God for the testimony of their marriage.",
-		closing: 'May love and faithfulness abound.',
+			'Please join us in sending them warm congratulations and praying for continued love, unity and joy in their home.',
+		closing: 'With warm regards in Christ,',
 	},
 ]
 

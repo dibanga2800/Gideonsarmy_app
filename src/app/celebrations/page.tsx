@@ -152,6 +152,12 @@ const CelebrationsPage = async ({ searchParams }: CelebrationsPageProps) => {
 						Delivery: <span className="font-semibold">{emailStatus.label}</span>
 					</p>
 					<p className={helpTextClass}>{emailStatus.detail}</p>
+					<p className="text-sm leading-6 text-navy-800">
+						Automatic delivery runs at 6:00 am UK time. On a celebration day,
+						the celebrant receives a personal greeting and all other active
+						members receive an invitation to celebrate with him. The seven-day
+						advance greeting is sent to the celebrant only.
+					</p>
 					<div className="flex flex-col gap-3 sm:flex-row">
 						<form action={sendTodayCelebrationEmailsAction}>
 							<PendingSubmitButton
@@ -159,7 +165,7 @@ const CelebrationsPage = async ({ searchParams }: CelebrationsPageProps) => {
 								disabled={!emailStatus.ready}
 								pendingLabel="Sending…"
 							>
-								Send today&apos;s emails
+								Send today&apos;s emails now (manual)
 							</PendingSubmitButton>
 						</form>
 						<form action={sendMonthCelebrationEmailsAction}>
@@ -173,9 +179,9 @@ const CelebrationsPage = async ({ searchParams }: CelebrationsPageProps) => {
 						</form>
 					</div>
 					<p className={helpTextClass}>
-						Today sends only brothers celebrating today or in seven days. This
-						month sends every birthday and anniversary listed above for the
-						current month, so you can test without waiting for the day.
+						The manual option is available if an automatic run needs to be
+						retried. The monthly option sends to every birthday and anniversary
+						listed above for the current month and is intended for testing.
 					</p>
 				</section>
 			) : null}

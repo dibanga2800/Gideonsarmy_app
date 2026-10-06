@@ -45,7 +45,7 @@ Use keys such as:
 - `birthday:{member_id}:{year}:manual:{YYYY-MM-DD}`
 - `anniversary:{member_id}:{year}:manual:{YYYY-MM-DD}`
 
-Administrators can queue outstanding-dues reminders from Payments and celebration emails from Celebrations. Birthday and wedding-anniversary emails go to the celebrant on the day and seven days before; other active members are asked to send wishes on the WhatsApp group. In-app celebration notices list this month and next month from profile birthday and anniversary fields without sending extra email. Stored events and calculated prayer meetings notify two days before and two hours before.
+Administrators can queue outstanding-dues reminders from Payments and manually retry celebration emails from Celebrations. The scheduled celebration job runs at 06:00 Europe/London time: seven days before a birthday or wedding anniversary it sends a private advance greeting to the celebrant; on the day it sends the celebrant's special greeting and separate, professionally worded celebration emails to every other active member, excluding the celebrant. In-app celebration notices list this month and next month from profile birthday and anniversary fields without sending extra email. Stored events and calculated prayer meetings notify two days before and two hours before.
 
 Email delivery is configured with Gmail App Password (`EMAIL_MODE=gmail`), or `EMAIL_MODE=console` for terminal-only testing. See `docs/email.md`.
 
