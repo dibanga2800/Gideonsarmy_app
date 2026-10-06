@@ -44,6 +44,7 @@ export const listProfiles = async (status?: MembershipStatus): Promise<Profile[]
 
 export const listProfilesPage = async (input: {
 	status?: MembershipStatus
+	search?: string
 	page?: number
 	pageSize?: number
 }): Promise<{
@@ -63,6 +64,9 @@ export const listProfilesPage = async (input: {
 
 	if (input.status) {
 		countQuery = countQuery.eq('membership_status', input.status)
+	}
+	if (input.search) {
+		countQuery = countQuery.or(memberSearchFilter(input.search))
 	}
 
 	const { count, error: countError } = await countQuery
@@ -93,6 +97,9 @@ export const listProfilesPage = async (input: {
 	if (input.status) {
 		query = query.eq('membership_status', input.status)
 	}
+	if (input.search) {
+		query = query.or(memberSearchFilter(input.search))
+	}
 
 	const { data, error } = await query
 
@@ -113,6 +120,14 @@ export const listProfilesPage = async (input: {
 		pageSize,
 		totalPages,
 	}
+}
+
+const memberSearchFilter = (search: string) => {
+	const terms = search.split(/\s+/u)
+	const matchingColumns = (term: string) =>
+		`or(first_name.ilike."%${term}%",last_name.ilike."%${term}%",email.ilike."%${term}%")`
+
+	return `and(${terms.map(matchingColumns).join(',')})`
 }
 
 export const updateOwnProfileRecord = async (

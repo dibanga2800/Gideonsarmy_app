@@ -3,8 +3,27 @@ import {
 	adminInviteMemberSchema,
 	adminMemberUpdateSchema,
 	adminUpdateMemberInviteSchema,
+	memberDirectorySearchSchema,
 	ownProfileUpdateSchema,
 } from './member'
+
+describe('memberDirectorySearchSchema', () => {
+	it('trims and normalises a member name or email query', () => {
+		expect(memberDirectorySearchSchema.parse('  David   Ibanga ')).toBe(
+			'David Ibanga',
+		)
+		expect(memberDirectorySearchSchema.parse('david+fellowship@example.com')).toBe(
+			'david+fellowship@example.com',
+		)
+	})
+
+	it('rejects unsupported filter syntax and overly long queries', () => {
+		expect(memberDirectorySearchSchema.safeParse('a,b').success).toBe(false)
+		expect(memberDirectorySearchSchema.safeParse('x'.repeat(101)).success).toBe(
+			false,
+		)
+	})
+})
 
 describe('ownProfileUpdateSchema', () => {
 	it('accepts a valid profile update and ignores empty optional fields', () => {

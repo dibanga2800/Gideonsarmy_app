@@ -163,6 +163,13 @@ export const memberStatusFilterSchema = z.union([
 	z.literal('INACTIVE'),
 ])
 
+export const memberDirectorySearchSchema = z
+	.string()
+	.trim()
+	.max(100)
+	.regex(/^[\p{L}\p{N}\s.'@+-]*$/u)
+	.transform((value) => value.replace(/\s+/gu, ' '))
+
 export type OwnProfileUpdate = z.infer<typeof ownProfileUpdateSchema>
 export type AdminMemberUpdate = z.infer<typeof adminMemberUpdateSchema>
 export type AdminInviteMember = z.infer<typeof adminInviteMemberSchema>

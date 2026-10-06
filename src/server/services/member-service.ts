@@ -194,6 +194,7 @@ export const listMembersForAdmin = async (status?: MembershipStatus) => {
 
 export const listMembersPageForAdmin = async (input: {
 	status?: MembershipStatus
+	search?: string
 	page?: number
 	pageSize?: number
 }) => {
@@ -205,6 +206,7 @@ export const listMembersPageForAdmin = async (input: {
 
 	return listProfilesPage({
 		status: input.status,
+		search: input.search,
 		page: input.page,
 		pageSize: input.pageSize ?? DEFAULT_MEMBER_PAGE_SIZE,
 	})

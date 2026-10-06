@@ -16,7 +16,10 @@ import { MembersPagination } from '@/components/members-pagination'
 import { ListPagination } from '@/components/list-pagination'
 import { MemberInviteRow } from '@/components/member-invite-row'
 import { PageHeader } from '@/components/page-header'
-import { memberStatusFilterSchema } from '@/lib/validation/member'
+import {
+	memberDirectorySearchSchema,
+	memberStatusFilterSchema,
+} from '@/lib/validation/member'
 import { membershipStatusLabel, roleLabel } from '@/lib/members/display'
 import { DEFAULT_LIST_PAGE_SIZE, parsePageParam } from '@/lib/list-pagination'
 import {
@@ -45,6 +48,7 @@ export const metadata: Metadata = {
 interface MembersPageProps {
 	searchParams: {
 		status?: string
+		q?: string
 		page?: string
 		invitePage?: string
 		error?: string
@@ -90,12 +94,15 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 	const filter = memberStatusFilterSchema.safeParse(searchParams.status ?? 'ACTIVE')
 	const status = filter.success && filter.data !== 'all' ? filter.data : undefined
 	const statusParam = filter.success ? filter.data : 'ACTIVE'
+	const parsedSearch = memberDirectorySearchSchema.safeParse(searchParams.q ?? '')
+	const search = parsedSearch.success ? parsedSearch.data : ''
 	const page = parsePageParam(searchParams.page)
 	const invitePage = parsePageParam(searchParams.invitePage)
 
 	const [directory, pendingPage, invites, emailStatus] = await Promise.all([
 		listMembersPageForAdmin({
 			status,
+			search,
 			page,
 			pageSize: DEFAULT_LIST_PAGE_SIZE,
 		}),
@@ -117,10 +124,13 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 
 	const openInvites = invites.invites
 	const filterQuery = statusParam === 'ACTIVE' ? undefined : statusParam === 'all' ? 'all' : statusParam
-	const filterHref = (nextStatus?: string) => {
+	const filterHref = (nextStatus?: string, includeSearch = true) => {
 		const params = new URLSearchParams()
 		if (nextStatus) {
 			params.set('status', nextStatus)
+		}
+		if (includeSearch && search) {
+			params.set('q', search)
 		}
 		if (invitePage > 1) {
 			params.set('invitePage', String(invitePage))
@@ -132,6 +142,9 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 		const params = new URLSearchParams()
 		if (filterQuery) {
 			params.set('status', filterQuery)
+		}
+		if (search) {
+			params.set('q', search)
 		}
 		if (directory.page > 1) {
 			params.set('page', String(directory.page))
@@ -315,8 +328,45 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 					</nav>
 				</div>
 
+				<form method="get" className="mt-5 flex flex-col gap-3 sm:flex-row">
+					{filterQuery ? (
+						<input type="hidden" name="status" value={filterQuery} />
+					) : null}
+					<input
+						type="search"
+						name="q"
+						defaultValue={search}
+						placeholder="Search name or email"
+						aria-label="Search fellowship members by name or email"
+						className={`${inputClass} min-w-0 flex-1`}
+						maxLength={100}
+					/>
+					<button type="submit" className={secondaryButtonClass}>
+						Search
+					</button>
+					{search ? (
+						<Link
+							href={filterHref(filterQuery, false)}
+							className={secondaryButtonClass}
+						>
+							Clear search
+						</Link>
+					) : null}
+				</form>
+
+				{!parsedSearch.success ? (
+					<p className="mt-2 text-sm text-red-800" role="alert">
+						Search using letters, numbers, spaces, apostrophes, hyphens, periods,
+						+ or @.
+					</p>
+				) : null}
+
 				{directory.members.length === 0 ? (
-					<p className={emptyStateClass}>No members match this filter.</p>
+					<p className={emptyStateClass}>
+						{search
+							? 'No members match your search and filter.'
+							: 'No members match this filter.'}
+					</p>
 				) : (
 					<div className={`${tableWrapClass} mt-6`}>
 						<table className="min-w-full text-left text-sm">
@@ -374,6 +424,7 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 							total={directory.total}
 							pageSize={directory.pageSize}
 							status={filterQuery}
+							search={search}
 							invitePage={invitePage}
 						/>
 					</div>

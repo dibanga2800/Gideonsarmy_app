@@ -6,13 +6,22 @@ interface MembersPaginationProps {
 	total: number
 	pageSize: number
 	status?: string
+	search?: string
 	invitePage?: number
 }
 
-const hrefFor = (page: number, status?: string, invitePage?: number) => {
+const hrefFor = (
+	page: number,
+	status?: string,
+	search?: string,
+	invitePage?: number,
+) => {
 	const params = new URLSearchParams()
 	if (status) {
 		params.set('status', status)
+	}
+	if (search) {
+		params.set('q', search)
 	}
 	if (page > 1) {
 		params.set('page', String(page))
@@ -30,6 +39,7 @@ export const MembersPagination = ({
 	total,
 	pageSize,
 	status,
+	search,
 	invitePage,
 }: MembersPaginationProps) => {
 	return (
@@ -38,7 +48,7 @@ export const MembersPagination = ({
 			totalPages={totalPages}
 			total={total}
 			pageSize={pageSize}
-			hrefForPage={(nextPage) => hrefFor(nextPage, status, invitePage)}
+			hrefForPage={(nextPage) => hrefFor(nextPage, status, search, invitePage)}
 			label="Member list pages"
 		/>
 	)
