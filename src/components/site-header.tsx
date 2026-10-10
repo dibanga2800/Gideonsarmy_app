@@ -18,8 +18,8 @@ export const SiteHeader = ({ access }: SiteHeaderProps) => {
 	const signedIn = access.status !== 'unauthenticated'
 
 	return (
-		<header className="border-b border-white/10 bg-navy-950">
-			<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
+		<header className="border-b border-white/10 bg-navy-950 px-4 sm:px-6 lg:px-10">
+			<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4">
 				<Link
 					href={signedIn ? '/pending' : '/'}
 					className="flex items-center gap-3 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-400"

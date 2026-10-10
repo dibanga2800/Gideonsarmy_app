@@ -86,8 +86,8 @@ const RadioPlayer = () => (
 
 export const SiteFooter = () => {
 	return (
-		<footer className="mt-auto border-t border-line">
-			<div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_minmax(18rem,24rem)] lg:items-start lg:px-10">
+		<footer className="mt-auto border-t border-line px-4 sm:px-6 lg:px-10">
+			<div className="mx-auto grid w-full max-w-6xl gap-6 py-8 lg:grid-cols-[1fr_minmax(18rem,24rem)] lg:items-start">
 				<div className="space-y-3">
 					<p className="text-sm font-semibold text-navy-900">
 						Gideon&apos;s Army Men&apos;s Fellowship
