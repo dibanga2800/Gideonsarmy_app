@@ -4,6 +4,7 @@ import { monthCelebrationsFromSources } from '@/lib/celebrations/month-list'
 import {
 	anniversaryMonthDay,
 	getLondonYearMonthDay,
+	isCelebrationSendingOpen,
 	isCelebrationInLondonMonth,
 	isCelebrationOnLondonDate,
 	formatCelebrationDay,
@@ -25,17 +26,18 @@ import {
 } from '@/lib/notifications/email-templates'
 import {
 	duesReminderIdempotencyKey,
+	isEventDay,
 	isTwoDaysBeforeEvent,
-	isWithinTwoHoursBeforeEvent,
 	shouldSendMonthlyDuesReminder,
-	TWO_HOURS_MS,
 } from '@/lib/notifications/schedule'
 import {
+	cancelStaleNotifications,
 	enqueueInAppNotices,
 	enqueueNotifications,
 	sendDueNotifications,
 	type ScheduledNotification,
 } from '@/server/notifications/notification-service'
+import type { NotificationType } from '@/types/roles'
 import {
 	listActiveMembersForJobs,
 	listOutstandingDuesForJobs,
@@ -43,53 +45,70 @@ import {
 } from '@/server/repositories/job-repository'
 import type { Profile } from '@/types/database'
 
-export const runScheduledJobs = async (now = new Date()) => {
-	const members = await listActiveMembersForJobs()
-	const planned = [
-		...(await buildDuesReminderNotifications(members, now)),
-		...(await buildEventNotices(members, now)),
-	]
-
-	const enqueued = await enqueueNotifications(planned)
-	const inApp = await enqueueInAppNotices(buildMonthCelebrationDigests(members, now))
-	const sendResult = await sendDueNotifications(now, {
-		types: ['DUES_REMINDER', 'EVENT_REMINDER', 'MEMBER_INVITE'],
-	})
-
-	logEvent({
-		operation: 'jobs.notifications',
-		status: 'ok',
-	})
-
-	return {
-		enqueued: enqueued + inApp,
-		...sendResult,
-	}
-}
-
 const celebrationNotificationTypes = [
 	'BIRTHDAY_CELEBRANT',
 	'BIRTHDAY_FELLOWSHIP',
 	'ANNIVERSARY_CELEBRANT',
 	'ANNIVERSARY_FELLOWSHIP',
-] as const
+] as const satisfies readonly NotificationType[]
 
-export const runScheduledCelebrationJobs = async (now = new Date()) => {
+/** Emails that only make sense on the day they were queued for. */
+const sameDayNotificationTypes: NotificationType[] = [
+	...celebrationNotificationTypes,
+	'EVENT_REMINDER',
+	'DUES_REMINDER',
+]
+
+const scheduledEmailTypes: NotificationType[] = [...sameDayNotificationTypes, 'MEMBER_INVITE']
+
+/**
+ * Leave headroom under the route's maxDuration (60s) for the database work
+ * before and after sending. Anything unsent stays queued for the next run.
+ */
+export const SEND_BUDGET_MS = 45_000
+
+export type DailyRun = 'morning' | 'evening'
+
+/**
+ * Everything the fellowship's scheduled emails need, in one idempotent pass.
+ *
+ * Vercel's Hobby plan runs cron jobs at most once a day and only promises the
+ * hour, not the minute, so this runs twice (morning and evening) and both runs
+ * do the same work. Idempotency keys stop anything being queued twice; the
+ * evening run is a same-day safety net if the morning run fails or runs out
+ * of time.
+ */
+export const runDailyJobs = async (run: DailyRun, now = new Date()) => {
+	const startedAt = Date.now()
 	const members = await listActiveMembersForJobs()
-	const notices = buildCelebrationNotices(members, { now })
-	const enqueued = await enqueueNotifications(notices)
+	const celebrationsOpen = isCelebrationSendingOpen(now)
+
+	const planned = [
+		...(await buildDuesReminderNotifications(members, now)),
+		...(await buildEventNotices(members, now)),
+		...(celebrationsOpen ? buildCelebrationNotices(members, { now }) : []),
+	]
+
+	const cancelled = await cancelStaleNotifications(now, sameDayNotificationTypes)
+	const enqueued = await enqueueNotifications(planned)
+	const inApp = await enqueueInAppNotices(buildMonthCelebrationDigests(members, now))
 	const sendResult = await sendDueNotifications(now, {
-		types: [...celebrationNotificationTypes],
+		types: scheduledEmailTypes,
+		deadline: startedAt + SEND_BUDGET_MS,
 	})
 
 	logEvent({
-		operation: 'jobs.celebrations',
+		operation: `jobs.daily.${run}`,
 		status: sendResult.failed > 0 ? 'error' : 'ok',
 		errorCategory: sendResult.failed > 0 ? 'email' : undefined,
+		durationMs: Date.now() - startedAt,
 	})
 
 	return {
-		enqueued,
+		run,
+		celebrationsOpen,
+		enqueued: enqueued + inApp,
+		cancelled,
 		...sendResult,
 	}
 }
@@ -315,7 +334,6 @@ const buildEventNotices = async (members: Profile[], now: Date) => {
 			continue
 		}
 
-		const twoHoursBefore = new Date(gathering.startAt.getTime() - TWO_HOURS_MS)
 		const when = formatLondonDateTime(gathering.startAt)
 
 		if (isTwoDaysBeforeEvent(gathering.startAt, now)) {
@@ -338,22 +356,22 @@ const buildEventNotices = async (members: Profile[], now: Date) => {
 			}
 		}
 
-		if (isWithinTwoHoursBeforeEvent(gathering.startAt, now)) {
+		if (isEventDay(gathering.startAt, now)) {
 			for (const member of members) {
 				const mail = eventReminderEmail({
 					firstName: member.first_name,
 					title: gathering.title,
 					whenLabel: when,
-					lead: 'In two hours,',
-					seed: `event:${gathering.id}:2h:${member.id}`,
+					lead: 'Today,',
+					seed: `event:${gathering.id}:day:${member.id}`,
 				})
 				items.push({
 					memberId: member.id,
 					type: 'EVENT_REMINDER',
 					title: mail.subject,
 					message: mail.text,
-					scheduledAt: twoHoursBefore.toISOString(),
-					idempotencyKey: `event:${gathering.id}:2h:${member.id}`,
+					scheduledAt: now.toISOString(),
+					idempotencyKey: `event:${gathering.id}:day:${member.id}`,
 				})
 			}
 		}

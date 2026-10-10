@@ -25,8 +25,8 @@ If payment-start updates fail with PostgreSQL `42702` (ambiguous `due_month`), a
 
 Notification sending, dues generation, and reminder schedules must be idempotent. Duplicate execution must not create duplicate notifications or duplicate dues rows.
 
-The daily general route is `GET` or `POST` `/api/jobs/notifications`. Birthday and wedding-anniversary emails use `GET` or `POST` `/api/jobs/celebrations`; Vercel calls that endpoint at 05:00 and 06:00 UTC, and it sends only during the Europe/London 06:00–06:59 hour (to account for GMT/BST).
-The general job also checks the Europe/London calendar date and queues monthly dues reminders on each month's last day, only for active members with outstanding dues.
+Two daily runs share one idempotent routine (`runDailyJobs`): the morning run at `/api/jobs/celebrations` (06:00 UTC) and the evening run at `/api/jobs/notifications` (18:00 UTC). Both accept `GET` or `POST`. The evening run is a same-day safety net for anything the morning run missed. This fits the Vercel Hobby plan, which runs cron jobs at most once a day and only to the hour; see `docs/deployment.md`.
+Each run checks the Europe/London calendar date. It queues monthly dues reminders on each month's last day (only for active members with outstanding dues), birthday and anniversary emails from 6am London time on the day, and event reminders two days before and on the day. It cancels same-day emails left pending from an earlier day rather than sending them late.
 
 On Vercel, `vercel.json` schedules these jobs. Production must set `CRON_SECRET` in Vercel environment variables. Requests without the bearer token must receive `401`.
 
@@ -38,13 +38,13 @@ Use keys such as:
 - `anniversary:{member_id}:{year}`
 - `anniversary-fellowship:{member_id}:{year}:{recipient_id}`
 - `event:{event_id}:2d:{member_id}`
-- `event:{event_id}:2h:{member_id}`
+- `event:{event_id}:day:{member_id}`
 - `celebration-digest:current:{YYYY-MM}:{member_id}`
 - `celebration-digest:upcoming:{YYYY-MM}:{member_id}`
 - `birthday:{member_id}:{year}:manual:{YYYY-MM-DD}`
 - `anniversary:{member_id}:{year}:manual:{YYYY-MM-DD}`
 
-Administrators can queue outstanding-dues reminders from Payments and manually retry celebration emails from Celebrations. The scheduled celebration job runs at 06:00 Europe/London time and sends birthday and wedding-anniversary email only on the celebration day: the celebrant receives a personal greeting, while every other active member receives a separate celebration email. The celebrant is excluded from that group email. In-app celebration notices list this month and next month from profile birthday and anniversary fields without sending extra email. Stored events and calculated prayer meetings notify two days before and two hours before.
+Administrators can queue outstanding-dues reminders from Payments and manually retry celebration emails from Celebrations. Scheduled birthday and wedding-anniversary email goes out from 6am Europe/London time, only on the celebration day: the celebrant receives a personal greeting, while every other active member receives a separate celebration email. The celebrant is excluded from that group email. In-app celebration notices list this month and next month from profile birthday and anniversary fields without sending extra email. Stored events and calculated prayer meetings notify two days before and on the morning of the day. (A two-hour reminder is not possible with once-a-day cron jobs on the Hobby plan.)
 
 Email delivery is configured with Gmail App Password (`EMAIL_MODE=gmail`), or `EMAIL_MODE=console` for terminal-only testing. See `docs/email.md`.
 
@@ -54,7 +54,7 @@ Email delivery is configured with Gmail App Password (`EMAIL_MODE=gmail`), or `E
 2. Confirm Supabase migrations through `0018` are applied
 3. Confirm Google OAuth redirect and Supabase Site URL match production
 4. After deploy, run the smoke checklist in `docs/deployment.md`
-5. If cron misbehaves, verify `CRON_SECRET` and Vercel Cron logs for both `/api/jobs/notifications` and `/api/jobs/celebrations`.
+5. If cron misbehaves, verify `CRON_SECRET` is set for **Production** (Vercel sends it automatically as a bearer token; without it every run returns 401), then check the Vercel logs for both `/api/jobs/celebrations` and `/api/jobs/notifications`. Each run logs `jobs.daily.morning` or `jobs.daily.evening` and returns `sent`, `failed`, `deferred` and `cancelled` counts.
 
 ## Time
 

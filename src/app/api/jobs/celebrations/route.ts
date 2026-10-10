@@ -1,11 +1,19 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { isLondonSixAm } from '@/lib/dates/celebration'
 import { logEvent } from '@/lib/logging'
 import { isCronAuthorized } from '@/server/jobs/cron-auth'
-import { runScheduledCelebrationJobs } from '@/server/jobs/run-scheduled-jobs'
+import { runDailyJobs } from '@/server/jobs/run-scheduled-jobs'
 
 export const dynamic = 'force-dynamic'
 
+// Fits both Vercel Hobby limits (60s without Fluid compute, 300s with it).
+// Sending stops early inside this budget; see SEND_BUDGET_MS.
+export const maxDuration = 60
+
+/**
+ * Morning run (scheduled 06:00 UTC: 6–7am in winter, 7–8am in summer).
+ * Sends today's birthday and anniversary emails and "today" event reminders,
+ * plus anything else due. Safe to call more than once.
+ */
 export const GET = async (request: NextRequest) => {
 	if (!isCronAuthorized(request)) {
 		logEvent({
@@ -16,14 +24,7 @@ export const GET = async (request: NextRequest) => {
 		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 	}
 
-	if (!isLondonSixAm()) {
-		return NextResponse.json({
-			skipped: true,
-			reason: 'outside-london-six-am-window',
-		})
-	}
-
-	const result = await runScheduledCelebrationJobs()
+	const result = await runDailyJobs('morning')
 	return NextResponse.json(result)
 }
 

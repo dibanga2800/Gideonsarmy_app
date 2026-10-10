@@ -67,29 +67,29 @@ See `docs/email.md` for Gmail App Password setup.
 1. Import the Git repository into Vercel.
 2. Set the environment variables above for Production.
 3. Deploy. Framework preset: Next.js.
-4. Confirm `vercel.json` schedules the general notification job and the
-   London 6am celebration job:
+4. Confirm `vercel.json` schedules the morning and evening runs:
 
 ```json
 {
   "crons": [
     {
-      "path": "/api/jobs/notifications",
-      "schedule": "0 18 * * *"
-    },
-    {
-      "path": "/api/jobs/celebrations",
-      "schedule": "0 5 * * *"
-    },
-    {
       "path": "/api/jobs/celebrations",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/jobs/notifications",
+      "schedule": "0 18 * * *"
     }
   ]
 }
 ```
 
-Vercel Cron uses UTC and Hobby schedules can run up to 59 minutes after the configured hour. Two daily celebration schedules cover GMT and BST; `/api/jobs/celebrations` sends only during the Europe/London 6:00–6:59am hour. The general job continues to handle dues and event reminders at 18:00 UTC. It sends dues reminders on the last calendar day of each Europe/London month to active members with outstanding dues, and does not send birthday or anniversary email.
+These schedules are designed for the Vercel **Hobby** plan, which allows cron jobs at most once a day each and only promises the hour, not the minute: a `0 6 * * *` job fires somewhere between 06:00 and 06:59 UTC. Nothing depends on landing in a particular minute or hour.
+
+- **Morning run** (`/api/jobs/celebrations`, 06:00 UTC: 6–7am London in winter, 7–8am in summer) sends today's birthday and wedding-anniversary emails, "today" reminders for gatherings, "in two days" reminders, and dues reminders on the last day of the month.
+- **Evening run** (`/api/jobs/notifications`, 18:00 UTC) does exactly the same work. Idempotency keys stop duplicates, so it only sends what the morning run missed, the same day.
+
+Celebration emails are never sent before 6am London time. Same-day emails (celebrations, event and dues reminders) still pending from an earlier day are cancelled instead of being sent late. Each run sends for at most 45 seconds within its 60-second function limit; anything left waits for the next run that day.
 
 ### Manual cron smoke checks
 
@@ -153,7 +153,8 @@ In Supabase **Authentication → URL configuration**:
 6. Admin can record a payment against outstanding months
 7. Celebration / notice path works for an admin (manual send or Notices page)
 8. Both `GET /api/jobs/notifications` and `GET /api/jobs/celebrations` return **401** without `CRON_SECRET`
-9. With the cron authorization header, the general route returns **200** and the celebrations route sends only during the first 6am hour in Europe/London; repeated runs do not duplicate sent notifications.
+9. With the cron authorization header, both routes return **200** with a JSON summary (`sent`, `failed`, `deferred`, `cancelled`, `celebrationsOpen`); repeated runs do not duplicate sent notifications.
+10. In Vercel, **Project → Settings → Cron Jobs** lists both jobs, and each run appears in the project logs.
 
 ## Out of scope for the initial cutover
 

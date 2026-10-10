@@ -8,6 +8,7 @@ import {
 	type EmailMessage,
 } from '@/lib/notifications/email-templates'
 import { createEmailService } from '@/server/notifications/email-service'
+import { startOfLondonDay } from '@/lib/notifications/schedule'
 import { parseProfiles, PROFILE_SELECT_COLUMNS } from '@/lib/validation/profile'
 
 const notificationRowSchema = z.object({
@@ -110,12 +111,19 @@ const parsePending = (value: unknown) => {
 	})
 }
 
+export interface SendResult {
+	sent: number
+	failed: number
+	/** Left pending because the time budget ran out; a later run sends them. */
+	deferred: number
+}
+
 export const sendDueNotifications = async (
 	now = new Date(),
-	filters: { types?: NotificationType[]; memberIds?: string[] } = {},
-) => {
+	filters: { types?: NotificationType[]; memberIds?: string[]; deadline?: number } = {},
+): Promise<SendResult> => {
 	if (filters.types?.length === 0 || filters.memberIds?.length === 0) {
-		return { sent: 0, failed: 0 }
+		return { sent: 0, failed: 0, deferred: 0 }
 	}
 
 	const supabase = createSupabaseAdminClient()
@@ -140,7 +148,7 @@ export const sendDueNotifications = async (
 			status: 'error',
 			errorCategory: 'database',
 		})
-		return { sent: 0, failed: 0 }
+		return { sent: 0, failed: 0, deferred: 0 }
 	}
 
 	const due = parsePending(data)
@@ -149,40 +157,83 @@ export const sendDueNotifications = async (
 	const email = createEmailService()
 	let sent = 0
 	let failed = 0
+	let deferred = 0
 
-	for (const row of due) {
-		if (row.notification_type === 'CELEBRATION_DIGEST') {
-			await markNotification(row.id, 'SENT')
-			sent += 1
-			continue
+	try {
+		for (const row of due) {
+			// Stop before the function time limit so rows are never left half-sent;
+			// whatever remains stays PENDING for the next run the same day.
+			if (filters.deadline !== undefined && Date.now() >= filters.deadline) {
+				deferred = due.length - sent - failed
+				break
+			}
+
+			if (row.notification_type === 'CELEBRATION_DIGEST') {
+				await markNotification(row.id, 'SENT')
+				sent += 1
+				continue
+			}
+
+			const to = emailsById.get(row.member_id)
+
+			if (!to) {
+				failed += 1
+				await markNotification(row.id, 'FAILED')
+				continue
+			}
+
+			const styled = emailFromStoredNotice(row.title, row.message)
+			const result = await email.send({
+				to,
+				subject: styled.subject,
+				text: styled.text,
+				html: styled.html,
+			})
+
+			if (result.ok) {
+				sent += 1
+				await markNotification(row.id, 'SENT')
+			} else {
+				failed += 1
+				await markNotification(row.id, 'FAILED')
+			}
 		}
-
-		const to = emailsById.get(row.member_id)
-
-		if (!to) {
-			failed += 1
-			await markNotification(row.id, 'FAILED')
-			continue
-		}
-
-		const styled = emailFromStoredNotice(row.title, row.message)
-		const result = await email.send({
-			to,
-			subject: styled.subject,
-			text: styled.text,
-			html: styled.html,
-		})
-
-		if (result.ok) {
-			sent += 1
-			await markNotification(row.id, 'SENT')
-		} else {
-			failed += 1
-			await markNotification(row.id, 'FAILED')
-		}
+	} finally {
+		email.close()
 	}
 
-	return { sent, failed }
+	return { sent, failed, deferred }
+}
+
+/**
+ * Cancels time-sensitive emails that were queued on an earlier London day and
+ * never went out. Sending them now would mean a birthday greeting a day late,
+ * or an "in two days" reminder arriving the day before.
+ */
+export const cancelStaleNotifications = async (now: Date, types: NotificationType[]) => {
+	if (types.length === 0) {
+		return 0
+	}
+
+	const supabase = createSupabaseAdminClient()
+	const { data, error } = await supabase
+		.from('notifications')
+		.update({ status: 'CANCELLED' })
+		.eq('status', 'PENDING')
+		.in('notification_type', types)
+		.lt('scheduled_at', startOfLondonDay(now).toISOString())
+		.select('id')
+
+	if (error) {
+		logEvent({
+			operation: 'notifications.cancelStale',
+			status: 'error',
+			errorCategory: 'database',
+		})
+		return 0
+	}
+
+	return Array.isArray(data) ? data.length : 0
 }
 
 const loadMemberEmails = async (ids: string[]) => {
@@ -237,5 +288,10 @@ export const sendDirectEmail = async (message: EmailMessage) => {
 		return { ok: false as const }
 	}
 
-	return createEmailService().send(message)
+	const email = createEmailService()
+	try {
+		return await email.send(message)
+	} finally {
+		email.close()
+	}
 }

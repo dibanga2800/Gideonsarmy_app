@@ -6,6 +6,8 @@ export type EmailDeliveryMode = 'gmail' | 'resend' | 'console' | 'unconfigured'
 
 export interface EmailService {
 	send: (message: EmailMessage) => Promise<{ ok: boolean }>
+	/** Releases any open connection. Safe to call more than once. */
+	close: () => void
 }
 
 export interface EmailDeliveryStatus {
@@ -54,10 +56,16 @@ const hasResend = (env: EmailEnv) =>
 	Boolean(env.RESEND_API_KEY?.trim() && env.FELLOWSHIP_EMAIL_FROM?.trim())
 
 const gmailEmailService = (user: string, appPassword: string, from: string): EmailService => {
+	// One pooled connection reused for every message in a run. Opening a fresh
+	// SMTP connection per email made celebration days slow enough to be cut off
+	// by the function time limit, leaving the rest queued until the next day.
 	const transporter = nodemailer.createTransport({
 		host: 'smtp.gmail.com',
 		port: 465,
 		secure: true,
+		pool: true,
+		maxConnections: 1,
+		maxMessages: 100,
 		auth: {
 			user,
 			pass: appPassword,
@@ -65,6 +73,9 @@ const gmailEmailService = (user: string, appPassword: string, from: string): Ema
 	})
 
 	return {
+		close: () => {
+			transporter.close()
+		},
 		send: async (message) => {
 			try {
 				const info = await transporter.sendMail({
@@ -106,6 +117,7 @@ const gmailEmailService = (user: string, appPassword: string, from: string): Ema
 }
 
 const resendEmailService = (apiKey: string, from: string): EmailService => ({
+	close: () => undefined,
 	send: async (message) => {
 		try {
 			const response = await fetch('https://api.resend.com/emails', {
@@ -152,6 +164,7 @@ const resendEmailService = (apiKey: string, from: string): EmailService => ({
 })
 
 const consoleEmailService: EmailService = {
+	close: () => undefined,
 	send: async (message) => {
 		logEvent({
 			operation: 'email.send',
@@ -173,6 +186,7 @@ const consoleEmailService: EmailService = {
 }
 
 const unconfiguredEmailService: EmailService = {
+	close: () => undefined,
 	send: async () => {
 		logEvent({
 			operation: 'email.send',
