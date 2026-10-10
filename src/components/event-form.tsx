@@ -1,3 +1,4 @@
+import { PendingSubmitButton } from '@/components/pending-submit-button'
 import { utcToLondonDateAndTime } from '@/lib/dates/prayer-meeting'
 import { EVENT_TYPES } from '@/types/roles'
 import { eventTypeLabel } from '@/lib/events/display'
@@ -39,7 +40,7 @@ export const EventForm = ({ action, event, submitLabel }: EventFormProps) => {
 					className={inputClass}
 				/>
 			</div>
-			<div>
+			<div className={`${formSpanFullClass} sm:max-w-[calc(50%-0.625rem)]`}>
 				<label htmlFor="event_type" className={labelClass}>
 					Type
 				</label>
@@ -85,7 +86,7 @@ export const EventForm = ({ action, event, submitLabel }: EventFormProps) => {
 			</div>
 			<div>
 				<label htmlFor="endDate" className={labelClass}>
-					End date
+					End date <span className="font-normal text-slate-500">(optional)</span>
 				</label>
 				<input
 					id="endDate"
@@ -97,7 +98,7 @@ export const EventForm = ({ action, event, submitLabel }: EventFormProps) => {
 			</div>
 			<div>
 				<label htmlFor="endTime" className={labelClass}>
-					End time
+					End time <span className="font-normal text-slate-500">(optional)</span>
 				</label>
 				<input
 					id="endTime"
@@ -109,7 +110,7 @@ export const EventForm = ({ action, event, submitLabel }: EventFormProps) => {
 			</div>
 			<div className={formSpanFullClass}>
 				<label htmlFor="description" className={labelClass}>
-					Description
+					Description <span className="font-normal text-slate-500">(optional)</span>
 				</label>
 				<textarea
 					id="description"
@@ -119,14 +120,13 @@ export const EventForm = ({ action, event, submitLabel }: EventFormProps) => {
 					className={textareaClass}
 				/>
 			</div>
-			<p className={`${formSpanFullClass} text-sm text-navy-800/70`}>
-				Times are Europe/London, including UK daylight saving time. The monthly
-				prayer meeting is calculated automatically and is not stored here.
+			<p className={`${formSpanFullClass} -mt-1 text-[0.8125rem] leading-5 text-slate-500`}>
+				Times are UK time and allow for daylight saving. Leave the end blank for an open-ended gathering.
 			</p>
-			<div className={formSpanFullClass}>
-				<button type="submit" className={primaryButtonClass}>
+			<div className={`${formSpanFullClass} flex justify-end border-t border-line pt-5`}>
+				<PendingSubmitButton className={primaryButtonClass} pendingLabel="Saving…">
 					{submitLabel}
-				</button>
+				</PendingSubmitButton>
 			</div>
 		</form>
 	)

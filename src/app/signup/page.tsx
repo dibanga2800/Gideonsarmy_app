@@ -5,16 +5,12 @@ import { isSupabaseConfigured } from '@/lib/validation/env'
 import { loginErrorSchema } from '@/lib/validation/login'
 import { AlertNotice } from '@/components/alert-notice'
 import { PendingSubmitButton } from '@/components/pending-submit-button'
+import { FellowshipMark } from '@/components/fellowship-mark'
 import {
-	cardClass,
-	eyebrowClass,
 	helpTextClass,
 	inputClass,
 	labelClass,
 	navLinkClass,
-	pageLeadClass,
-	pageNarrowClass,
-	pageTitleClass,
 	primaryButtonClass,
 } from '@/lib/ui'
 
@@ -59,29 +55,30 @@ const SignUpPage = ({ searchParams }: SignUpPageProps) => {
 	const email = typeof searchParams.email === 'string' ? searchParams.email : ''
 
 	return (
-		<main className={pageNarrowClass}>
-			<p className={eyebrowClass}>Gideon&apos;s Army</p>
-			<h1 className={`${pageTitleClass} mt-3`}>Create a password</h1>
-			<p className={pageLeadClass}>
-				Use the email address you were invited with. This is for brothers who do
-				not have a Gmail account. An administrator still has to approve
-				membership after you sign in.
-			</p>
+		<main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
+			<div className="rounded-2xl border border-line bg-white p-6 shadow-raised sm:p-9">
+				<FellowshipMark className="h-10 w-10" />
+				<h1 className="mt-5 font-serif text-[1.75rem] font-semibold tracking-tight text-navy-950">
+					Create a password
+				</h1>
+				<p className="mt-1.5 text-sm leading-6 text-slate-600">
+					For brothers invited with an email address that isn&apos;t Gmail. Use the address your
+					invitation was sent to. An administrator still approves your membership afterwards.
+				</p>
 
-			{searchParams.error ? (
-				<div className="mt-6">
-					<AlertNotice kind="danger" title="Could not create account">
-						{errorMessage(searchParams.error)}
-					</AlertNotice>
-				</div>
-			) : null}
+				{searchParams.error ? (
+					<div className="mt-6">
+						<AlertNotice kind="danger" title="Account not created">
+							{errorMessage(searchParams.error)}
+						</AlertNotice>
+					</div>
+				) : null}
 
-			{configured ? (
-				<section className={`${cardClass} mt-8 space-y-5`}>
-					<form action={signUpWithInviteAction} className="space-y-5">
+				{configured ? (
+					<form action={signUpWithInviteAction} className="mt-7 space-y-4">
 						<div>
 							<label htmlFor="email" className={labelClass}>
-								Email
+								Invited email
 							</label>
 							<input
 								id="email"
@@ -106,9 +103,12 @@ const SignUpPage = ({ searchParams }: SignUpPageProps) => {
 								required
 								minLength={10}
 								maxLength={72}
+								aria-describedby="password-help"
 								className={inputClass}
 							/>
-							<p className={helpTextClass}>At least 10 characters.</p>
+							<p id="password-help" className={helpTextClass}>
+								At least 10 characters.
+							</p>
 						</div>
 						<div>
 							<label htmlFor="confirm_password" className={labelClass}>
@@ -125,22 +125,22 @@ const SignUpPage = ({ searchParams }: SignUpPageProps) => {
 								className={inputClass}
 							/>
 						</div>
-						<PendingSubmitButton className={primaryButtonClass} pendingLabel="Creating account…">
+						<PendingSubmitButton className={`${primaryButtonClass} min-h-11 w-full`} pendingLabel="Creating account…">
 							Create password and sign in
 						</PendingSubmitButton>
+						<p className="border-t border-line pt-5 text-sm text-slate-600">
+							Already have a password?{' '}
+							<Link href="/login" className={navLinkClass}>
+								Sign in
+							</Link>
+						</p>
 					</form>
-					<p className={helpTextClass}>
-						Already have a password?{' '}
-						<Link href="/login" className={navLinkClass}>
-							Sign in
-						</Link>
+				) : (
+					<p className="mt-6 rounded-xl bg-cream-50 p-4 text-sm text-navy-800 ring-1 ring-inset ring-line">
+						Sign-in isn&apos;t configured yet. See docs/supabase-setup.md.
 					</p>
-				</section>
-			) : (
-				<p className={`${cardClass} mt-8 text-navy-800`}>
-					Supabase is not configured yet. See docs/supabase-setup.md.
-				</p>
-			)}
+				)}
+			</div>
 		</main>
 	)
 }

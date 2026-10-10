@@ -1,40 +1,41 @@
+import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { Icon } from '@/components/icons'
 
 interface PageHeaderProps {
-	eyebrow: string
 	title: string
-	lead?: string
-	leadWide?: boolean
+	description?: ReactNode
 	actions?: ReactNode
+	/** Badges or short facts shown beside the title. */
+	meta?: ReactNode
+	back?: { href: string; label: string }
 }
 
-export const PageHeader = ({
-	eyebrow,
-	title,
-	lead,
-	leadWide = false,
-	actions,
-}: PageHeaderProps) => {
+export const PageHeader = ({ title, description, actions, meta, back }: PageHeaderProps) => {
 	return (
-		<header className="relative">
-			<div className="absolute -left-4 top-1 hidden h-16 w-1 rounded-full bg-gold-500 sm:block" aria-hidden="true" />
-			<p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold-600">{eyebrow}</p>
-			<div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+		<header className="mb-6 sm:mb-8">
+			{back ? (
+				<Link
+					href={back.href}
+					className="mb-4 inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-slate-500 transition-colors hover:text-navy-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600"
+				>
+					<Icon name="arrow-left" className="h-4 w-4" />
+					{back.label}
+				</Link>
+			) : null}
+			<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 				<div className="min-w-0">
-					<h1 className="font-serif text-3xl font-semibold tracking-tight text-navy-950 sm:text-4xl">
-						{title}
-					</h1>
-					{lead ? (
-						<p
-							className={`mt-3 text-base leading-7 text-navy-800/80 ${
-								leadWide ? 'max-w-3xl' : 'max-w-2xl'
-							}`}
-						>
-							{lead}
-						</p>
+					<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+						<h1 className="font-serif text-[2rem] font-semibold leading-tight tracking-tight text-navy-950 sm:text-[2.375rem]">
+							{title}
+						</h1>
+						{meta ? <div className="flex flex-wrap items-center gap-2">{meta}</div> : null}
+					</div>
+					{description ? (
+						<div className="mt-2 max-w-3xl text-[0.9375rem] leading-7 text-slate-600">{description}</div>
 					) : null}
 				</div>
-				{actions ? <div className="shrink-0">{actions}</div> : null}
+				{actions ? <div className="flex shrink-0 flex-wrap gap-2">{actions}</div> : null}
 			</div>
 		</header>
 	)

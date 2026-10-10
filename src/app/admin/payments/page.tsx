@@ -4,29 +4,38 @@ import { redirect } from 'next/navigation'
 import { recordPaymentAction, savePaymentAccountAction, sendDuesRemindersAction } from '@/server/actions/payment-actions'
 import { getAdminPaymentsPage, groupEvidenceBySubmission } from '@/server/services/dues-service'
 import { RecordPaymentForm } from '@/components/record-payment-form'
-import { AlertNotice } from '@/components/alert-notice'
+import { AlertNotice, NoticeStack } from '@/components/alert-notice'
 import { DuesLedger } from '@/components/dues-ledger'
+import { EmptyState } from '@/components/empty-state'
+import { Icon } from '@/components/icons'
 import { LedgerYearNav } from '@/components/ledger-year-nav'
 import { ListPagination } from '@/components/list-pagination'
 import { PageHeader } from '@/components/page-header'
 import { PendingSubmitButton } from '@/components/pending-submit-button'
-import { formatSortCode, paymentSubmissionStatusLabel } from '@/lib/dues/display'
+import { SectionCard } from '@/components/section-card'
+import { StatGroup } from '@/components/stat-group'
+import { PaymentStatusBadge } from '@/components/status-badge'
+import { formatSortCode } from '@/lib/dues/display'
+import { formatCalendarDate, memberDisplayName } from '@/lib/members/display'
 import { formatPenceAsGbp } from '@/lib/money'
 import { parsePageParam } from '@/lib/list-pagination'
 import { paymentSubmissionFilterSchema } from '@/lib/validation/payment'
 import {
-	cardClass,
-	emptyStateClass,
-	eyebrowClass,
 	filterActiveClass,
 	filterIdleClass,
+	ghostButtonClass,
 	helpTextClass,
 	inputClass,
 	labelClass,
-	navLinkClass,
 	pageWideClass,
 	primaryButtonClass,
-	tableWrapClass,
+	secondaryButtonClass,
+	smallButtonClass,
+	tableClass,
+	tdClass,
+	thClass,
+	theadClass,
+	trClass,
 } from '@/lib/ui'
 import type { PaymentSubmissionStatus } from '@/types/roles'
 
@@ -76,279 +85,289 @@ const PaymentsPage = async ({ searchParams }: PaymentsPageProps) => {
 	const evidenceBySubmission = groupEvidenceBySubmission(page.evidence)
 	const statusParam = searchParams.status ?? 'CONFIRMED'
 
+	const hasMissingMonths = page.ledgerRows.some(({ ledger }) =>
+		ledger.cells.some((cell) => cell.state === 'missing'),
+	)
+
 	return (
 		<main className={pageWideClass}>
 			<PageHeader
-				eyebrow="Administration"
 				title="Payments"
-				lead="£10 each month, £120 for a full year from January 2026. Record one month or select all outstanding months for a full-year payment. Outstanding is for this year only; unpaid months in an earlier year stay on that year."
-				leadWide
+				description="Record bank transfers against the months they cover, and keep the bank details members see up to date. £10 a month, £120 for a full year."
+				actions={
+					<LedgerYearNav
+						years={page.years}
+						selectedYear={page.year}
+						hrefForYear={(year) => paymentsHref(year, { status: searchParams.status })}
+					/>
+				}
 			/>
 
-			{searchParams.updated === '1' ? (
-				<div className="mt-6">
-					<AlertNotice kind="success" title="Saved">
-						The payment has been recorded against the selected months.
+			<NoticeStack>
+				{searchParams.updated === '1' ? (
+					<AlertNotice kind="success" title="Payment recorded">
+						The selected months are now marked as paid.
 					</AlertNotice>
-				</div>
-			) : null}
-
-			{searchParams.reminded === '1' ? (
-				<div className="mt-6">
-					<AlertNotice kind="success" title="Reminders queued">
-						Outstanding-dues reminders have been queued.
-					</AlertNotice>
-				</div>
-			) : null}
-
-			{searchParams.account === '1' ? (
-				<div className="mt-6">
-					<AlertNotice kind="success" title="Saved">
-						Payment instructions have been saved.
-					</AlertNotice>
-				</div>
-			) : null}
-
-			{searchParams.error === 'invalid' ? (
-				<div className="mt-6">
-					<AlertNotice kind="danger" title="Check the details">
-						Check the amount, date, reference, and selected months.
-					</AlertNotice>
-				</div>
-			) : searchParams.error === 'save' ? (
-				<div className="mt-6">
-					<AlertNotice kind="danger" title="Could not save">
-						The payment could not be saved. Apply{' '}
-						<code>supabase/migrations/0010_repair_dues_writes.sql</code> in the
-						Supabase SQL editor, then refresh this page and record the months
-						again.
-					</AlertNotice>
-				</div>
-			) : searchParams.error ? (
-				<div className="mt-6">
-					<AlertNotice kind="danger" title="Could not update">
-						That payment update could not be completed.
-					</AlertNotice>
-				</div>
-			) : null}
-
-			<section className={`${cardClass} mt-8`}>
-				<p className={eyebrowClass}>{page.year} ledger</p>
-				<LedgerYearNav
-					years={page.years}
-					selectedYear={page.year}
-					hrefForYear={(year) => paymentsHref(year, { status: searchParams.status })}
-				/>
-				<p className="mt-3 text-sm leading-6 text-navy-800/80">
-					{page.fellowship.owingMembers} of {page.fellowship.memberCount}{' '}
-					active members owing in {page.year} ·{' '}
-					{formatPenceAsGbp(page.fellowship.owingPence)} outstanding this year ·{' '}
-					{formatPenceAsGbp(page.fellowship.paidPence)} recorded this year.
-					Months after the current month are not yet due.
-				</p>
-				{page.ledgerRows.some(({ ledger }) =>
-					ledger.cells.some((cell) => cell.state === 'missing'),
-				) ? (
-					<div className="mt-4">
-						<AlertNotice kind="danger" title="Missing months">
-							Some months still show a dash because dues rows were not created.
-							Apply <code>0010_repair_dues_writes.sql</code> in the SQL editor,
-							then refresh so January to this month can be ticked.
-						</AlertNotice>
-					</div>
 				) : null}
-				<DuesLedger
-					action={recordPaymentAction}
-					year={page.year}
-					rows={page.ledgerRows}
-				/>
-				<form action={sendDuesRemindersAction} className="mt-6">
-					<input type="hidden" name="ledgerYear" value={String(page.year)} />
-					<PendingSubmitButton className={primaryButtonClass} pendingLabel="Queuing…">
-						Send payment reminders
-					</PendingSubmitButton>
-					<p className={`${helpTextClass} mt-2`}>
-						Reminders go only to members with outstanding months in the current
-						year. Earlier years are not added to that total. The system also
-						emails them on the last day of each month, Europe/London.
-					</p>
-				</form>
-			</section>
+				{searchParams.reminded === '1' ? (
+					<AlertNotice kind="success" title="Reminders sent">
+						Members with months to pay this year have been reminded.
+					</AlertNotice>
+				) : null}
+				{searchParams.account === '1' ? (
+					<AlertNotice kind="success" title="Bank details saved">
+						Members now see the updated payment instructions.
+					</AlertNotice>
+				) : null}
+				{searchParams.error === 'invalid' ? (
+					<AlertNotice kind="danger" title="Payment not recorded">
+						Check the amount, date, reference and selected months.
+					</AlertNotice>
+				) : searchParams.error === 'save' ? (
+					<AlertNotice kind="danger" title="Payment not recorded">
+						The database rejected the change. Apply{' '}
+						<code>supabase/migrations/0010_repair_dues_writes.sql</code> in the Supabase SQL editor, refresh
+						this page, then record the months again.
+					</AlertNotice>
+				) : searchParams.error ? (
+					<AlertNotice kind="danger" title="Payment not updated">
+						That change couldn&apos;t be completed. Try again.
+					</AlertNotice>
+				) : null}
+				{hasMissingMonths ? (
+					<AlertNotice kind="danger" title="Some months aren't set up">
+						Cells showing a dash have no dues row. Apply <code>0010_repair_dues_writes.sql</code> in the SQL
+						editor, then refresh so January to this month can be ticked.
+					</AlertNotice>
+				) : null}
+			</NoticeStack>
 
-			<section className={`${cardClass} mt-8`}>
-				<p className={eyebrowClass}>Record a bank transfer</p>
-				<p className="mt-3 text-sm leading-6 text-navy-800/80">
-					Use this when a new transfer arrives for {page.year}. Select all
-					outstanding months to record a full-year payment, or tick individual
-					months. The amount must equal the selected months exactly.
-				</p>
-				<RecordPaymentForm
-					action={recordPaymentAction}
-					members={page.activeMembers}
-					outstandingDues={page.outstandingDues}
-					ledgerYear={page.year}
-				/>
-			</section>
+			<StatGroup
+				label={`${page.year} dues summary`}
+				items={[
+					{
+						label: `Members owing in ${page.year}`,
+						value: (
+							<>
+								{page.fellowship.owingMembers}
+								<span className="font-sans text-base font-normal text-slate-600"> of {page.fellowship.memberCount}</span>
+							</>
+						),
+						attention: page.fellowship.owingMembers > 0,
+					},
+					{
+						label: 'Outstanding this year',
+						value: formatPenceAsGbp(page.fellowship.owingPence),
+						detail: "Months after this one aren't due yet",
+					},
+					{ label: 'Recorded this year', value: formatPenceAsGbp(page.fellowship.paidPence) },
+				]}
+			/>
 
-			<section className={`${cardClass} mt-8`}>
-				<p className={eyebrowClass}>Bank details</p>
-				<p className="mt-3 text-sm leading-6 text-navy-800/80">
-					These details are shown to approved members only. They are not stored
-					in the application source.
-				</p>
-				<form action={savePaymentAccountAction} className="mt-6 grid gap-5 sm:grid-cols-2">
-					<input type="hidden" name="ledgerYear" value={String(page.year)} />
-					<div className="sm:col-span-2">
-						<label htmlFor="accountName" className={labelClass}>
-							Account name
-						</label>
-						<input
-							id="accountName"
-							name="accountName"
-							type="text"
-							required
-							maxLength={80}
-							defaultValue={page.paymentAccount?.accountName ?? ''}
-							className={inputClass}
-						/>
-					</div>
-					<div>
-						<label htmlFor="sortCode" className={labelClass}>
-							Sort code
-						</label>
-						<input
-							id="sortCode"
-							name="sortCode"
-							type="text"
-							inputMode="numeric"
-							required
-							defaultValue={
-								page.paymentAccount?.sortCode
-									? formatSortCode(page.paymentAccount.sortCode)
-									: ''
-							}
-							className={inputClass}
-						/>
-						<p className={helpTextClass}>Six digits, with or without hyphens.</p>
-					</div>
-					<div>
-						<label htmlFor="accountNumber" className={labelClass}>
-							Account number
-						</label>
-						<input
-							id="accountNumber"
-							name="accountNumber"
-							type="text"
-							inputMode="numeric"
-							required
-							defaultValue={page.paymentAccount?.accountNumber ?? ''}
-							className={inputClass}
-						/>
-					</div>
-					<div className="sm:col-span-2">
-						<label htmlFor="referenceNote" className={labelClass}>
-							Reference note
-						</label>
-						<input
-							id="referenceNote"
-							name="referenceNote"
-							type="text"
-							maxLength={200}
-							defaultValue={page.paymentAccount?.referenceNote ?? ''}
-							className={inputClass}
-						/>
-					</div>
-					<div className="sm:col-span-2">
-						<PendingSubmitButton className={primaryButtonClass} pendingLabel="Saving…">
-							Save payment instructions
+			<SectionCard
+				title={`${page.year} ledger`}
+				description="Every active member's year. Amber cells are owing; tick them to record a payment."
+				className="mt-5"
+				flush
+				actions={
+					<form action={sendDuesRemindersAction}>
+						<input type="hidden" name="ledgerYear" value={String(page.year)} />
+						<PendingSubmitButton className={secondaryButtonClass} pendingLabel="Sending…">
+							<Icon name="mail" className="h-4 w-4" />
+							Send reminders
 						</PendingSubmitButton>
-					</div>
-				</form>
-			</section>
+					</form>
+				}
+			>
+				<DuesLedger action={recordPaymentAction} year={page.year} rows={page.ledgerRows} />
+				<p className="border-t border-line px-5 py-3 text-[0.8125rem] leading-5 text-slate-500 sm:px-6">
+					Reminders go only to members with months to pay this year. They are also sent automatically on the
+					last day of each month.
+				</p>
+			</SectionCard>
 
-			<nav className="mt-8 flex flex-wrap gap-2" aria-label="Filter payments">
-				<FilterLink href={paymentsHref(page.year, { status: 'SUBMITTED' })} active={status === 'SUBMITTED'}>
-					Submitted
-				</FilterLink>
-				<FilterLink href={paymentsHref(page.year, { status: 'CONFIRMED' })} active={status === 'CONFIRMED'}>
-					Confirmed
-				</FilterLink>
-				<FilterLink href={paymentsHref(page.year, { status: 'REJECTED' })} active={status === 'REJECTED'}>
-					Rejected
-				</FilterLink>
-				<FilterLink href={paymentsHref(page.year, { status: 'all' })} active={!status}>
-					All
-				</FilterLink>
-			</nav>
-
-			{page.submissions.length === 0 ? (
-				<p className={emptyStateClass}>No payment submissions match this filter.</p>
-			) : (
-				<div className={tableWrapClass}>
-					<table className="min-w-full text-left text-sm">
-						<caption className="sr-only">Payment submissions</caption>
-						<thead className="border-b border-cream-200 bg-cream-50">
-							<tr>
-								<th scope="col" className="px-4 py-3 font-medium text-navy-800">
-									Member
-								</th>
-								<th scope="col" className="px-4 py-3 font-medium text-navy-800">
-									Amount
-								</th>
-								<th scope="col" className="px-4 py-3 font-medium text-navy-800">
-									Date
-								</th>
-								<th scope="col" className="px-4 py-3 font-medium text-navy-800">
-									Status
-								</th>
-								<th scope="col" className="px-4 py-3 font-medium text-navy-800">
-									Evidence
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							{page.submissions.map((submission) => {
-								const member = page.membersById.get(submission.member_id)
-								const files = evidenceBySubmission.get(submission.id) ?? []
-								return (
-									<tr key={submission.id} className="border-b border-cream-100 last:border-0">
-										<td className="px-4 py-3">
-											<Link href={`/admin/payments/${submission.id}`} className={navLinkClass}>
-												{member
-													? `${member.first_name} ${member.last_name}`
-													: 'Member'}
-											</Link>
-										</td>
-										<td className="px-4 py-3 text-navy-800">
-											{formatPenceAsGbp(submission.amount_pence)}
-										</td>
-										<td className="px-4 py-3 text-navy-800">{submission.payment_date}</td>
-										<td className="px-4 py-3 text-navy-800">
-											{paymentSubmissionStatusLabel(submission.status)}
-										</td>
-										<td className="px-4 py-3 text-navy-800">
-											{files.length > 0 ? 'Attached' : 'None'}
-										</td>
-									</tr>
-								)
-							})}
-						</tbody>
-					</table>
-					<ListPagination
-						page={page.submissionPage.page}
-						totalPages={page.submissionPage.totalPages}
-						total={page.submissionPage.total}
-						pageSize={page.submissionPage.pageSize}
-						hrefForPage={(nextPage) =>
-							paymentsHref(page.year, {
-								status: statusParam,
-								page: nextPage > 1 ? String(nextPage) : undefined,
-							})
-						}
-						label="Payment submission pages"
+			<div className="mt-5 grid gap-5 lg:grid-cols-2">
+				<SectionCard
+					title="Record a bank transfer"
+					description={`For a transfer that covers months in ${page.year}. The amount must match the months selected.`}
+				>
+					<RecordPaymentForm
+						action={recordPaymentAction}
+						members={page.activeMembers}
+						outstandingDues={page.outstandingDues}
+						ledgerYear={page.year}
 					/>
-				</div>
-			)}
+				</SectionCard>
+
+				<SectionCard
+					title="Bank details for members"
+					description="Shown only to approved members on their Dues page. Stored in the database, never in the app's code."
+				>
+					<form action={savePaymentAccountAction} className="grid gap-4 sm:grid-cols-2">
+						<input type="hidden" name="ledgerYear" value={String(page.year)} />
+						<div className="sm:col-span-2">
+							<label htmlFor="accountName" className={labelClass}>
+								Account name
+							</label>
+							<input
+								id="accountName"
+								name="accountName"
+								type="text"
+								required
+								maxLength={80}
+								defaultValue={page.paymentAccount?.accountName ?? ''}
+								className={inputClass}
+							/>
+						</div>
+						<div>
+							<label htmlFor="sortCode" className={labelClass}>
+								Sort code
+							</label>
+							<input
+								id="sortCode"
+								name="sortCode"
+								type="text"
+								inputMode="numeric"
+								required
+								aria-describedby="sortCode-help"
+								defaultValue={page.paymentAccount?.sortCode ? formatSortCode(page.paymentAccount.sortCode) : ''}
+								className={inputClass}
+							/>
+							<p id="sortCode-help" className={helpTextClass}>
+								Six digits, hyphens optional.
+							</p>
+						</div>
+						<div>
+							<label htmlFor="accountNumber" className={labelClass}>
+								Account number
+							</label>
+							<input
+								id="accountNumber"
+								name="accountNumber"
+								type="text"
+								inputMode="numeric"
+								required
+								defaultValue={page.paymentAccount?.accountNumber ?? ''}
+								className={inputClass}
+							/>
+						</div>
+						<div className="sm:col-span-2">
+							<label htmlFor="referenceNote" className={labelClass}>
+								Reference note <span className="font-normal text-slate-500">(optional)</span>
+							</label>
+							<input
+								id="referenceNote"
+								name="referenceNote"
+								type="text"
+								maxLength={200}
+								defaultValue={page.paymentAccount?.referenceNote ?? ''}
+								className={inputClass}
+							/>
+						</div>
+						<div className="sm:col-span-2">
+							<PendingSubmitButton className={primaryButtonClass} pendingLabel="Saving…">
+								Save bank details
+							</PendingSubmitButton>
+						</div>
+					</form>
+				</SectionCard>
+			</div>
+
+			<SectionCard title="Payment history" className="mt-5" flush>
+				<nav className="flex flex-wrap gap-1 border-b border-line px-5 py-3 sm:px-6" aria-label="Filter payments">
+					<FilterLink href={paymentsHref(page.year, { status: 'SUBMITTED' })} active={status === 'SUBMITTED'}>
+						Awaiting review
+					</FilterLink>
+					<FilterLink href={paymentsHref(page.year, { status: 'CONFIRMED' })} active={status === 'CONFIRMED'}>
+						Confirmed
+					</FilterLink>
+					<FilterLink href={paymentsHref(page.year, { status: 'REJECTED' })} active={status === 'REJECTED'}>
+						Rejected
+					</FilterLink>
+					<FilterLink href={paymentsHref(page.year, { status: 'all' })} active={!status}>
+						All
+					</FilterLink>
+				</nav>
+				{page.submissions.length === 0 ? (
+					<EmptyState icon="receipt" title="No payments in this view" compact>
+						Try another filter.
+					</EmptyState>
+				) : (
+					<>
+						<div className="overflow-x-auto">
+							<table className={tableClass}>
+								<caption className="sr-only">Payment submissions</caption>
+								<thead className={theadClass}>
+									<tr>
+										<th scope="col" className={thClass}>Member</th>
+										<th scope="col" className={`${thClass} text-right`}>Amount</th>
+										<th scope="col" className={thClass}>Received</th>
+										<th scope="col" className={thClass}>Status</th>
+										<th scope="col" className={thClass}>Evidence</th>
+										<th scope="col" className={thClass}>
+											<span className="sr-only">Open</span>
+										</th>
+									</tr>
+								</thead>
+								<tbody>
+									{page.submissions.map((submission) => {
+										const member = page.membersById.get(submission.member_id)
+										const files = evidenceBySubmission.get(submission.id) ?? []
+										const name = member ? memberDisplayName(member) : 'Member'
+										return (
+											<tr key={submission.id} className={`${trClass} hover:bg-cream-50`}>
+												<td className={`${tdClass} font-medium`}>{name}</td>
+												<td className={`${tdClass} text-right font-semibold`}>
+													{formatPenceAsGbp(submission.amount_pence)}
+												</td>
+												<td className={`${tdClass} whitespace-nowrap text-slate-600`}>
+													{formatCalendarDate(submission.payment_date)}
+												</td>
+												<td className={tdClass}>
+													<PaymentStatusBadge status={submission.status} />
+												</td>
+												<td className={`${tdClass} text-slate-600`}>
+													{files.length > 0 ? (
+														<span className="inline-flex items-center gap-1">
+															<Icon name="file" className="h-4 w-4" />
+															Attached
+														</span>
+													) : (
+														<span className="text-slate-500">None</span>
+													)}
+												</td>
+												<td className={`${tdClass} text-right`}>
+													<Link
+														href={`/admin/payments/${submission.id}`}
+														className={`${ghostButtonClass} ${smallButtonClass}`}
+														aria-label={`Open payment from ${name}`}
+													>
+														{submission.status === 'SUBMITTED' ? 'Review' : 'Open'}
+														<Icon name="arrow-right" className="h-4 w-4" />
+													</Link>
+												</td>
+											</tr>
+										)
+									})}
+								</tbody>
+							</table>
+						</div>
+						<ListPagination
+							page={page.submissionPage.page}
+							totalPages={page.submissionPage.totalPages}
+							total={page.submissionPage.total}
+							pageSize={page.submissionPage.pageSize}
+							hrefForPage={(nextPage) =>
+								paymentsHref(page.year, {
+									status: statusParam,
+									page: nextPage > 1 ? String(nextPage) : undefined,
+								})
+							}
+							label="Payment history pages"
+						/>
+					</>
+				)}
+			</SectionCard>
 		</main>
 	)
 }

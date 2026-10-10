@@ -4,9 +4,14 @@ import { redirect } from 'next/navigation'
 import { getAdminEvents, getEventsPage } from '@/server/services/event-service'
 import { eventTypeLabel, formatLondonDateTime } from '@/lib/events/display'
 import { buildGoogleCalendarUrl } from '@/lib/events/calendar'
-import { AlertNotice } from '@/components/alert-notice'
+import { AlertNotice, NoticeStack } from '@/components/alert-notice'
+import { DateBlock, formatLondonTime, formatLondonWeekdayDate } from '@/components/date-block'
+import { EmptyState } from '@/components/empty-state'
+import { Icon } from '@/components/icons'
 import { ListPagination } from '@/components/list-pagination'
 import { PageHeader } from '@/components/page-header'
+import { SectionCard } from '@/components/section-card'
+import { StatusBadge } from '@/components/status-badge'
 import {
 	DEFAULT_LIST_PAGE_SIZE,
 	normalisePage,
@@ -14,13 +19,16 @@ import {
 	totalPagesFor,
 } from '@/lib/list-pagination'
 import {
-	cardClass,
-	emptyStateClass,
-	eyebrowClass,
-	heroPanelClass,
+	ghostButtonClass,
 	navLinkClass,
 	pageMainClass,
 	primaryButtonClass,
+	smallButtonClass,
+	tableClass,
+	tdClass,
+	thClass,
+	theadClass,
+	trClass,
 } from '@/lib/ui'
 
 export const metadata: Metadata = {
@@ -36,6 +44,44 @@ interface EventsPageProps {
 	}
 }
 
+interface CalendarLinksProps {
+	id: string
+	title: string
+	description: string | null
+	startAt: string
+	endAt: string | null
+	dark?: boolean
+}
+
+const CalendarLinks = ({ id, title, description, startAt, endAt, dark = false }: CalendarLinksProps) => {
+	const linkClass = dark
+		? 'inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-white/10 px-3 text-sm font-semibold text-white transition-colors hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-300'
+		: `${ghostButtonClass} ${smallButtonClass}`
+
+	return (
+		<div className="flex flex-wrap gap-2">
+			<Link href={`/events/calendar?id=${encodeURIComponent(id)}`} className={linkClass}>
+				<Icon name="calendar" className="h-4 w-4" />
+				Add to calendar
+			</Link>
+			<a
+				href={buildGoogleCalendarUrl({
+					title,
+					description: description ?? '',
+					startAt: new Date(startAt),
+					endAt: endAt ? new Date(endAt) : null,
+				})}
+				className={linkClass}
+				rel="noreferrer"
+				target="_blank"
+			>
+				Google Calendar
+				<span className="sr-only"> (opens in a new tab)</span>
+			</a>
+		</div>
+	)
+}
+
 const eventsHref = (page: number) => (page > 1 ? `/events?page=${page}` : '/events')
 
 const EventsPage = async ({ searchParams }: EventsPageProps) => {
@@ -47,178 +93,174 @@ const EventsPage = async ({ searchParams }: EventsPageProps) => {
 
 	const nextItem = page.items[0]
 	const storedEvents = page.isAdmin ? ((await getAdminEvents()) ?? []) : []
+	const laterItems = page.items.slice(1)
 	const pageSize = DEFAULT_LIST_PAGE_SIZE
-	const totalPages = totalPagesFor(page.items.length, pageSize)
+	const totalPages = totalPagesFor(laterItems.length, pageSize)
 	const currentPage = normalisePage(parsePageParam(searchParams.page), totalPages)
 	const start = (currentPage - 1) * pageSize
-	const visibleItems = page.items.slice(start, start + pageSize)
+	const visibleItems = laterItems.slice(start, start + pageSize)
 
 	return (
 		<main className={pageMainClass}>
 			<PageHeader
-				eyebrow="Gathering"
 				title="Events"
-				lead="The monthly prayer meeting is the second Thursday of every month at 8:00 PM, Europe/London. Other fellowship gatherings are listed with it."
+				description="Prayer meetings are on the second Thursday of every month at 8pm. Other fellowship gatherings appear alongside them. All times are UK time."
 				actions={
 					page.isAdmin ? (
 						<Link href="/admin/events/new" className={primaryButtonClass}>
+							<Icon name="plus" className="h-4 w-4" />
 							Add event
 						</Link>
 					) : undefined
 				}
 			/>
 
-			{searchParams.updated === '1' ? (
-				<div className="mt-6">
-					<AlertNotice kind="success" title="Saved">
+			<NoticeStack>
+				{searchParams.updated === '1' ? (
+					<AlertNotice kind="success" title="Event saved">
 						Your changes have been saved.
 					</AlertNotice>
-				</div>
-			) : null}
-
-			{searchParams.deleted === '1' ? (
-				<div className="mt-6">
-					<AlertNotice kind="danger" title="Removed">
-						That item has been removed.
+				) : null}
+				{searchParams.deleted === '1' ? (
+					<AlertNotice kind="success" title="Event deleted">
+						The gathering has been removed from the list.
 					</AlertNotice>
-				</div>
-			) : null}
-
-			{searchParams.error ? (
-				<div className="mt-6">
-					<AlertNotice kind="danger" title="Could not save">
-						That event could not be saved.
+				) : null}
+				{searchParams.error ? (
+					<AlertNotice kind="danger" title="Event not saved">
+						Check the title, date and time, then try again.
 					</AlertNotice>
-				</div>
-			) : null}
+				) : null}
+			</NoticeStack>
 
 			{nextItem ? (
-				<section className={heroPanelClass}>
-					<div className="absolute inset-x-0 top-0 h-1 bg-gold-500" aria-hidden="true" />
-					<p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold-400">
-						Next gathering
-					</p>
-					<h2 className="mt-3 font-serif text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-						{nextItem.title}
-					</h2>
-					<p className="mt-4 text-lg text-white">
-						{formatLondonDateTime(nextItem.startAt)}
-					</p>
-					{nextItem.description ? (
-						<p className="mt-2 text-sm text-white/70">{nextItem.description}</p>
-					) : null}
+				<section
+					aria-labelledby="next-gathering"
+					className="lamplight rounded-2xl p-5 text-white shadow-raised sm:p-7"
+				>
+					<p className="text-sm text-white/60">Next gathering</p>
+					<div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-center">
+						<DateBlock value={nextItem.startAt} tone="dark" />
+						<div className="min-w-0 flex-1">
+							<h2 id="next-gathering" className="font-serif text-2xl font-semibold tracking-tight">
+								{nextItem.title}
+							</h2>
+							<p className="mt-1 text-sm text-white/75">
+								{formatLondonWeekdayDate(nextItem.startAt)} at {formatLondonTime(nextItem.startAt)}
+								{nextItem.endAt ? `, until ${formatLondonTime(nextItem.endAt)}` : ''}
+							</p>
+							{nextItem.description ? (
+								<p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">{nextItem.description}</p>
+							) : null}
+						</div>
+					</div>
+					<div className="mt-5 border-t border-white/10 pt-5">
+						<CalendarLinks {...nextItem} dark />
+					</div>
 				</section>
 			) : (
-				<p className={emptyStateClass}>No upcoming gatherings are listed yet.</p>
+				<EmptyState icon="calendar" title="Nothing scheduled yet">
+					Upcoming gatherings will be listed here.
+				</EmptyState>
 			)}
 
-			<section className="mt-10">
-				<h2 className="font-serif text-2xl font-semibold text-navy-950">
-					Upcoming
-				</h2>
-				{visibleItems.length === 0 ? (
-					<p className={emptyStateClass}>No upcoming gatherings are listed yet.</p>
-				) : (
-					<>
-						<ul className="mt-6 space-y-4">
-							{visibleItems.map((item) => (
-								<li key={item.id} className={cardClass}>
-									<p className={eyebrowClass}>{eventTypeLabel(item.eventType)}</p>
-									<h3 className="mt-3 font-serif text-xl font-semibold text-navy-950">
-										{item.title}
-									</h3>
-									<p className="mt-2 text-navy-800">
-										{formatLondonDateTime(item.startAt)}
+			{laterItems.length > 0 ? (
+				<SectionCard title="Coming up" className="mt-5" flush>
+					<ul className="divide-y divide-cream-100">
+						{visibleItems.map((item) => (
+							<li key={item.id} className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-start sm:px-6">
+								<DateBlock value={item.startAt} />
+								<div className="min-w-0 flex-1">
+									<div className="flex flex-wrap items-center gap-2">
+										<h3 className="text-[0.9375rem] font-semibold text-navy-950">{item.title}</h3>
+										{item.isCalculated ? null : (
+											<StatusBadge tone="neutral" dot={false}>
+												{eventTypeLabel(item.eventType)}
+											</StatusBadge>
+										)}
+									</div>
+									<p className="mt-0.5 text-sm text-slate-600">
+										{formatLondonWeekdayDate(item.startAt)} at {formatLondonTime(item.startAt)}
+										{item.endAt ? ` until ${formatLondonDateTime(item.endAt)}` : ''}
 									</p>
-									{item.endAt ? (
-										<p className="mt-1 text-sm text-navy-800/70">
-											Ends {formatLondonDateTime(item.endAt)}
-										</p>
+									{item.description && !item.isCalculated ? (
+										<p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-600">{item.description}</p>
 									) : null}
-									{item.description ? (
-										<p className="mt-3 text-sm leading-6 text-navy-800/80">
-											{item.description}
-										</p>
-									) : null}
-									<p className="mt-4 flex flex-wrap gap-4">
-										<Link
-											href={`/events/calendar?id=${encodeURIComponent(item.id)}`}
-											className={navLinkClass}
-										>
-											Add to calendar
-										</Link>
-										<a
-											href={buildGoogleCalendarUrl({
-												title: item.title,
-												description: item.description ?? '',
-												startAt: new Date(item.startAt),
-												endAt: item.endAt ? new Date(item.endAt) : null,
-											})}
-											className={navLinkClass}
-											rel="noreferrer"
-											target="_blank"
-										>
-											Google Calendar
-										</a>
-									</p>
-									{page.isAdmin && !item.isCalculated ? (
-										<p className="mt-4">
-											<Link href={`/admin/events/${item.id}`} className={navLinkClass}>
-												Edit event
+									<div className="-ml-3 mt-2 flex flex-wrap items-center gap-1">
+										<CalendarLinks {...item} />
+										{page.isAdmin && !item.isCalculated ? (
+											<Link href={`/admin/events/${item.id}`} className={`${ghostButtonClass} ${smallButtonClass}`}>
+												Edit
 											</Link>
-										</p>
-									) : null}
-								</li>
-							))}
-						</ul>
-						<ListPagination
-							page={currentPage}
-							totalPages={totalPages}
-							total={page.items.length}
-							pageSize={pageSize}
-							hrefForPage={eventsHref}
-							label="Upcoming event pages"
-							className="mt-6 flex flex-col gap-3 text-sm text-navy-800 sm:flex-row sm:items-center sm:justify-between"
-						/>
-					</>
-				)}
-			</section>
+										) : null}
+									</div>
+								</div>
+							</li>
+						))}
+					</ul>
+					<ListPagination
+						page={currentPage}
+						totalPages={totalPages}
+						total={laterItems.length}
+						pageSize={pageSize}
+						hrefForPage={eventsHref}
+						label="Upcoming event pages"
+					/>
+				</SectionCard>
+			) : null}
 
 			{page.isAdmin ? (
-				<section className="mt-10">
-					<h2 className="font-serif text-2xl font-semibold text-navy-950">
-						Stored events
-					</h2>
-					<p className="mt-2 max-w-2xl text-sm leading-6 text-navy-800/80">
-						Prayer meetings are calculated and are not listed here. Edit or
-						remove only gatherings that were added by an administrator.
-					</p>
+				<SectionCard
+					title="Events added by administrators"
+					description="Prayer meetings are calculated automatically, so only one-off gatherings appear here."
+					className="mt-5"
+					flush
+				>
 					{storedEvents.length === 0 ? (
-						<p className={emptyStateClass}>No stored events have been added yet.</p>
+						<EmptyState
+							icon="calendar"
+							title="No events added yet"
+							compact
+							action={
+								<Link href="/admin/events/new" className={`${primaryButtonClass} ${smallButtonClass}`}>
+									Add event
+								</Link>
+							}
+						/>
 					) : (
-						<ul className="mt-6 space-y-4">
-							{storedEvents.map((event) => (
-								<li key={event.id} className={cardClass}>
-									<p className={eyebrowClass}>{eventTypeLabel(event.event_type)}</p>
-									<h3 className="mt-3 font-serif text-xl font-semibold text-navy-950">
-										{event.title}
-									</h3>
-									<p className="mt-2 text-navy-800">
-										{formatLondonDateTime(event.start_at)}
-									</p>
-									<p className="mt-4">
-										<Link
-											href={`/admin/events/${event.id}`}
-											className={navLinkClass}
-										>
-											Edit event
-										</Link>
-									</p>
-								</li>
-							))}
-						</ul>
+						<div className="overflow-x-auto">
+							<table className={tableClass}>
+								<caption className="sr-only">Stored events</caption>
+								<thead className={theadClass}>
+									<tr>
+										<th scope="col" className={thClass}>Event</th>
+										<th scope="col" className={thClass}>Type</th>
+										<th scope="col" className={thClass}>Starts</th>
+										<th scope="col" className={thClass}>
+											<span className="sr-only">Actions</span>
+										</th>
+									</tr>
+								</thead>
+								<tbody>
+									{storedEvents.map((event) => (
+										<tr key={event.id} className={trClass}>
+											<td className={`${tdClass} font-medium`}>{event.title}</td>
+											<td className={`${tdClass} text-slate-600`}>{eventTypeLabel(event.event_type)}</td>
+											<td className={`${tdClass} whitespace-nowrap text-slate-600`}>
+												{formatLondonDateTime(event.start_at)}
+											</td>
+											<td className={`${tdClass} text-right`}>
+												<Link href={`/admin/events/${event.id}`} className={navLinkClass}>
+													Edit
+												</Link>
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
 					)}
-				</section>
+				</SectionCard>
 			) : null}
 		</main>
 	)

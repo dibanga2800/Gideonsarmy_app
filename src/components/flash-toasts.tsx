@@ -78,11 +78,12 @@ export const FlashToasts = () => {
 
 	return (
 		<div
-			className="pointer-events-none fixed inset-x-0 top-20 z-50 flex justify-center px-4 sm:top-24 sm:justify-end sm:px-8"
+			className="pointer-events-none fixed inset-x-0 top-16 z-50 flex justify-center px-4 sm:top-6 sm:justify-end sm:px-6"
 			aria-live={toast.kind === 'danger' ? 'assertive' : 'polite'}
 		>
 			<div className="pointer-events-auto w-full max-w-md">
 				<AlertNotice
+					elevated
 					kind={toast.kind}
 					title={toast.title}
 					onDismiss={() => {

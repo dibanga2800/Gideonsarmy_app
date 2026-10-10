@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PageHeader } from '@/components/page-header'
-import {
-	cardComfortClass,
-	pageNarrowClass,
-} from '@/lib/ui'
+import { navLinkClass, pageNarrowClass } from '@/lib/ui'
+
+const proseClass =
+	'space-y-4 rounded-xl border border-line bg-white p-6 text-[0.9375rem] leading-7 text-slate-700 shadow-card sm:p-9'
 
 export const metadata: Metadata = {
 	title: 'Privacy notice',
@@ -13,8 +13,11 @@ export const metadata: Metadata = {
 const PrivacyPage = () => {
 	return (
 		<main className={pageNarrowClass}>
-			<PageHeader eyebrow="Fellowship records" title="Privacy notice" />
-			<section className={`${cardComfortClass} mt-8 space-y-4 text-navy-800`}>
+			<PageHeader
+				title="Privacy notice"
+				description="What this portal records about you, who can see it, and why."
+			/>
+			<article className={proseClass}>
 				<p>
 					Gideon&apos;s Army Men&apos;s Fellowship at RCCG Living Water Parish,
 					Stoke-on-Trent, uses this application to manage membership, monthly
@@ -43,12 +46,12 @@ const PrivacyPage = () => {
 					database and private file storage, and email delivery. Access is limited
 					by account permissions. For information about your rights, retention,
 					and how to make a request, see the{' '}
-					<Link href="/gdpr" className="font-semibold underline">
+					<Link href="/gdpr" className={navLinkClass}>
 						GDPR and data rights page
 					</Link>
 					.
 				</p>
-			</section>
+			</article>
 		</main>
 	)
 }

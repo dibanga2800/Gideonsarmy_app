@@ -1,96 +1,87 @@
-export const primaryButtonClass =
-	'inline-flex min-h-11 items-center justify-center rounded-md bg-navy-900 px-4 py-2 text-sm font-semibold text-cream-50 shadow-sm transition hover:bg-navy-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500 disabled:cursor-not-allowed disabled:opacity-60'
+/**
+ * Shared Tailwind class strings. Pages compose these rather than repeating
+ * long utility lists, so the visual system changes in one place.
+ */
 
-export const secondaryButtonClass =
-	'inline-flex min-h-11 items-center justify-center rounded-md border border-cream-200 bg-white px-4 py-2 text-sm font-semibold text-navy-900 transition hover:bg-cream-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500'
+const focusRing =
+	'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600'
 
-export const dangerButtonClass =
-	'inline-flex min-h-11 items-center justify-center rounded-md bg-red-800 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500'
+const buttonBase = `inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${focusRing} disabled:cursor-not-allowed disabled:opacity-50`
 
-export const headerButtonClass =
-	'inline-flex min-h-10 items-center justify-center rounded-md border border-white/35 bg-transparent px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-400'
+export const primaryButtonClass = `${buttonBase} bg-navy-900 text-white shadow-card hover:bg-navy-800`
 
-export const headerCtaClass =
-	'inline-flex min-h-10 items-center justify-center rounded-md bg-gold-500 px-3.5 py-2 text-sm font-semibold text-navy-950 transition hover:bg-gold-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-400'
+export const secondaryButtonClass = `${buttonBase} border border-line bg-white text-navy-900 shadow-card hover:bg-cream-50`
 
-export const inputClass =
-	'mt-1 block w-full rounded-md border border-cream-200 bg-white px-3 py-2 text-navy-900 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500'
+export const ghostButtonClass = `${buttonBase} text-navy-800 hover:bg-cream-100`
 
-export const textareaClass = `${inputClass} min-h-[5.5rem]`
+export const dangerButtonClass = `${buttonBase} bg-red-700 text-white shadow-card hover:bg-red-800`
 
-export const navLinkClass =
-	'text-sm font-semibold text-navy-900 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500'
+export const dangerOutlineButtonClass = `${buttonBase} border border-red-200 bg-white text-red-700 hover:bg-red-50`
 
-export const pageMainClass =
-	'mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6 sm:py-12 lg:px-8'
+export const smallButtonClass = 'min-h-8 px-3 py-1.5 text-[0.8125rem]'
 
-export const pageWideClass =
-	'mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 sm:py-12 lg:px-8'
+export const inputClass = `mt-1.5 block w-full rounded-lg border border-field bg-white px-3 py-2 text-sm text-navy-900 shadow-card placeholder:text-slate-500 read-only:bg-cream-50 ${focusRing} focus-visible:border-navy-800`
 
-export const pageNarrowClass =
-	'mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:px-6 sm:py-12'
+export const textareaClass = `${inputClass} min-h-[6rem]`
 
-/** Admin / dense forms that still need room to breathe on large screens. */
-export const pageContentClass =
-	'mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 sm:py-12 lg:px-8'
+export const labelClass = 'block text-sm font-medium text-navy-900'
+
+export const helpTextClass = 'mt-1.5 text-[0.8125rem] leading-5 text-slate-500'
+
+export const navLinkClass = `rounded-sm font-semibold text-navy-800 underline decoration-navy-800/35 decoration-2 underline-offset-4 transition-colors hover:text-navy-950 hover:decoration-navy-800 ${focusRing}`
+
+/* Page widths. The app shell already provides padding and a max width. */
+export const pageMainClass = 'mx-auto w-full max-w-6xl'
+
+export const pageWideClass = 'mx-auto w-full max-w-7xl'
+
+export const pageNarrowClass = 'mx-auto w-full max-w-3xl'
+
+export const pageContentClass = 'mx-auto w-full max-w-6xl'
 
 export const pageTitleClass =
-	'font-serif text-3xl font-semibold tracking-tight text-navy-950 sm:text-4xl'
+	'font-serif text-[1.75rem] font-semibold leading-tight tracking-tight text-navy-950 sm:text-[2rem]'
 
-export const pageLeadClass = 'mt-3 max-w-2xl text-base leading-7 text-navy-800/80'
+export const pageLeadClass = 'mt-2 max-w-2xl text-[0.9375rem] leading-7 text-slate-600'
 
-export const pageLeadWideClass = 'mt-3 max-w-3xl text-base leading-7 text-navy-800/80'
+export const pageLeadWideClass = 'mt-2 max-w-3xl text-[0.9375rem] leading-7 text-slate-600'
 
-export const sectionHeadingClass = 'font-serif text-xl font-semibold text-navy-950 sm:text-2xl'
+export const sectionHeadingClass = 'text-base font-semibold text-navy-950'
 
-export const formGridClass = 'grid gap-5 sm:grid-cols-2 xl:grid-cols-3'
+export const formGridClass = 'grid gap-5 sm:grid-cols-2'
 
 export const formSpan2Class = 'sm:col-span-2'
 
-export const formSpanFullClass = 'sm:col-span-2 xl:col-span-3'
+export const formSpanFullClass = 'sm:col-span-2'
 
-export const cardClass =
-	'rounded-xl border border-cream-200 bg-white p-6 shadow-[0_12px_40px_-24px_rgba(11,18,32,0.35)]'
+export const cardClass = 'rounded-xl border border-line bg-white p-5 shadow-card sm:p-6'
 
-export const cardComfortClass =
-	'rounded-xl border border-cream-200 bg-white p-6 sm:p-8 shadow-[0_12px_40px_-24px_rgba(11,18,32,0.35)]'
+export const cardComfortClass = 'rounded-xl border border-line bg-white p-5 shadow-card sm:p-7'
 
-export const eyebrowClass =
-	'text-xs font-semibold uppercase tracking-[0.12em] text-gold-600 sm:tracking-[0.22em]'
+export const eyebrowClass = 'text-sm font-medium text-slate-500'
 
-export const labelClass = 'block text-sm font-medium text-navy-800'
+export const dtClass = 'text-[0.8125rem] font-medium text-slate-500'
 
-export const helpTextClass = 'mt-1 text-sm text-navy-800/65'
+export const ddClass = 'mt-0.5 text-sm font-medium text-navy-950'
 
-export const dtClass = 'text-xs font-semibold uppercase tracking-[0.14em] text-navy-800/60'
+export const cardLinkClass = `${cardClass} block transition-colors hover:border-navy-600/40 ${focusRing}`
 
-export const ddClass = 'mt-1 text-navy-950'
+export const filterActiveClass = `inline-flex min-h-9 items-center rounded-lg bg-navy-900 px-3 text-sm font-semibold text-white ${focusRing}`
 
-export const successAlertClass =
-	'mt-6 overflow-hidden rounded-xl border border-green-300 bg-green-50 px-5 py-4 text-sm leading-6 text-green-950'
+export const filterIdleClass = `inline-flex min-h-9 items-center rounded-lg px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-cream-100 hover:text-navy-900 ${focusRing}`
 
-export const errorAlertClass =
-	'mt-6 overflow-hidden rounded-xl border border-red-300 bg-red-50 px-5 py-4 text-sm leading-6 text-red-950'
+export const tableWrapClass = 'overflow-x-auto rounded-xl border border-line bg-white shadow-card'
 
-export const cardLinkClass = `${cardClass} block transition hover:-translate-y-0.5 hover:border-gold-500/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500`
+export const tableClass = 'min-w-full text-left text-sm'
 
-export const filterActiveClass =
-	'rounded-full bg-navy-900 px-3.5 py-1.5 text-sm font-medium text-cream-50'
+export const theadClass = 'border-b border-line bg-cream-50 text-[0.8125rem] text-slate-500'
 
-export const filterIdleClass =
-	'rounded-full bg-white px-3.5 py-1.5 text-sm font-medium text-navy-800 ring-1 ring-cream-200 transition hover:bg-cream-100'
+export const thClass =
+	'whitespace-nowrap px-4 py-2.5 font-medium first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6'
 
-export const tableWrapClass =
-	'mt-8 overflow-x-auto rounded-xl border border-cream-200 bg-white shadow-[0_12px_40px_-24px_rgba(11,18,32,0.35)]'
+export const tdClass = 'px-4 py-3 text-navy-900 first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6'
+
+export const trClass = 'border-b border-cream-100 last:border-0'
 
 export const emptyStateClass =
-	'mt-8 rounded-xl border border-dashed border-cream-200 bg-white/70 px-6 py-10 text-center text-sm leading-6 text-navy-800'
-
-export const statusPillClass =
-	'inline-flex items-center rounded-full bg-gold-500/15 px-2.5 py-0.5 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-gold-600'
-
-export const statusPillMutedClass =
-	'inline-flex items-center rounded-full bg-cream-100 px-2.5 py-0.5 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-navy-800/70'
-
-export const heroPanelClass =
-	'relative mt-10 overflow-hidden rounded-xl bg-navy-950 p-6 text-white shadow-[0_18px_50px_-28px_rgba(11,18,32,0.85)] sm:p-8'
+	'mt-6 rounded-xl border border-dashed border-cream-300 bg-white px-6 py-10 text-center text-sm leading-6 text-slate-600'

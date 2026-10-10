@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { PageHeader } from '@/components/page-header'
-import { cardComfortClass, pageNarrowClass, sectionHeadingClass } from '@/lib/ui'
+import { navLinkClass, pageNarrowClass } from '@/lib/ui'
+
+const headingClass = 'font-serif text-xl font-semibold text-navy-950'
 
 export const metadata: Metadata = {
 	title: 'GDPR and data rights',
@@ -10,13 +12,12 @@ const GdprPage = () => {
 	return (
 		<main className={pageNarrowClass}>
 			<PageHeader
-				eyebrow="Data protection"
-				title="GDPR and your data rights"
-				lead="How personal information is used in the Gideon's Army fellowship application and how to make a data request."
+				title="Your data rights"
+				description="How personal information is used in the Gideon's Army fellowship application and how to make a data request."
 			/>
-			<article className={`${cardComfortClass} mt-8 space-y-8 text-navy-800`}>
+			<article className="space-y-8 rounded-xl border border-line bg-white p-6 text-[0.9375rem] leading-7 text-slate-700 shadow-card sm:p-9">
 				<section className="space-y-3">
-					<h2 className={sectionHeadingClass}>Who is responsible</h2>
+					<h2 className={headingClass}>Who is responsible</h2>
 					<p>
 						The application is operated for Gideon&apos;s Army Men&apos;s Fellowship at
 						RCCG Living Water Parish, Stoke-on-Trent. The fellowship administration
@@ -27,7 +28,7 @@ const GdprPage = () => {
 				</section>
 
 				<section className="space-y-3">
-					<h2 className={sectionHeadingClass}>What we use and why</h2>
+					<h2 className={headingClass}>What we use and why</h2>
 					<p>
 						We use account and profile details to identify members, manage invitations
 						and membership approval, and provide fellowship services. We use event,
@@ -46,7 +47,7 @@ const GdprPage = () => {
 				</section>
 
 				<section className="space-y-3">
-					<h2 className={sectionHeadingClass}>Information and access</h2>
+					<h2 className={headingClass}>Information and access</h2>
 					<p>
 						Information may include your name, email address, contact and directory
 						details you provide, birthday day and month, wedding anniversary and
@@ -59,7 +60,7 @@ const GdprPage = () => {
 				</section>
 
 				<section className="space-y-3">
-					<h2 className={sectionHeadingClass}>Service providers and retention</h2>
+					<h2 className={headingClass}>Service providers and retention</h2>
 					<p>
 						The application relies on service providers for hosting, authentication,
 						database and private file storage, and email delivery. These providers
@@ -77,7 +78,7 @@ const GdprPage = () => {
 				</section>
 
 				<section className="space-y-3">
-					<h2 className={sectionHeadingClass}>Your rights</h2>
+					<h2 className={headingClass}>Your rights</h2>
 					<p>Depending on the circumstances, you may have the right to:</p>
 					<ul className="list-disc space-y-2 pl-5">
 						<li>Request access to your personal information.</li>
@@ -96,7 +97,7 @@ const GdprPage = () => {
 				</section>
 
 				<section className="space-y-3">
-					<h2 className={sectionHeadingClass}>Complaints</h2>
+					<h2 className={headingClass}>Complaints</h2>
 					<p>
 						You can raise a concern with the fellowship or parish administration.
 						You also have the right to complain to the UK Information Commissioner&apos;s
@@ -105,7 +106,7 @@ const GdprPage = () => {
 							href="https://ico.org.uk/make-a-complaint/data-protection-complaints/"
 							target="_blank"
 							rel="noreferrer"
-							className="font-semibold underline"
+							className={navLinkClass}
 						>
 							ico.org.uk
 						</a>

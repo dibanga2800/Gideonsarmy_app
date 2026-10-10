@@ -12,13 +12,28 @@ html {
 
 body {
 	min-height: 100vh;
-	background-color: #fbf8f2;
-	color: #111b2e;
+	background-color: #f4f5f7;
+	color: #0e1a2f;
+	font-feature-settings: 'tnum' 1;
 }
 
 ::selection {
-	background-color: rgb(196 163 90 / 0.3);
-	color: #0b1220;
+	background-color: rgb(184 145 63 / 0.25);
+	color: #0a1424;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
 }
 
 @keyframes nav-progress {
@@ -35,4 +50,15 @@ body {
 
 .animate-nav-progress {
 	animation: nav-progress 1.1s ease-in-out infinite alternate;
+}
+
+/*
+ * Lamplight: the soft gold glow on navy surfaces. In Judges 7, Gideon's men
+ * carried lamps inside clay jars; gold on navy is that light, used sparingly.
+ */
+.lamplight {
+	background-color: #0a1424;
+	background-image:
+		radial-gradient(48rem 20rem at 100% 0%, rgb(209 176 103 / 0.24), transparent 65%),
+		radial-gradient(30rem 18rem at 0% 100%, rgb(63 81 114 / 0.35), transparent 70%);
 }

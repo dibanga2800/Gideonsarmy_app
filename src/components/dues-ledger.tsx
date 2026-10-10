@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { PendingSubmitButton } from '@/components/pending-submit-button'
 import { formatMonthShort } from '@/lib/dates/dues-year'
 import { getLondonDate } from '@/lib/dates/due-month'
 import { memberDisplayName } from '@/lib/members/display'
@@ -10,8 +11,9 @@ import {
 	inputClass,
 	labelClass,
 	primaryButtonClass,
+	smallButtonClass,
 } from '@/lib/ui'
-import type { MemberYearLedger } from '@/lib/dues/ledger'
+import type { LedgerCell, MemberYearLedger } from '@/lib/dues/ledger'
 import type { Profile } from '@/types/database'
 
 interface LedgerRow {
@@ -41,19 +43,15 @@ export const DuesLedger = ({ action, year, rows }: DuesLedgerProps) => {
 	}
 
 	if (rows.length === 0) {
-		return (
-			<p className="mt-6 text-sm leading-6 text-navy-800/80">
-				No active members are available.
-			</p>
-		)
+		return <p className="px-5 py-8 text-center text-sm text-slate-600 sm:px-6">No active members yet.</p>
 	}
 
 	return (
-		<div className="mt-6 space-y-5">
-			<div className="grid gap-5 sm:grid-cols-2">
+		<div>
+			<div className="grid gap-4 border-b border-line bg-cream-50 px-5 py-4 sm:grid-cols-[12rem_minmax(0,18rem)_1fr] sm:items-end sm:px-6">
 				<div>
 					<label htmlFor="ledgerPaymentDate" className={labelClass}>
-						Payment date
+						Date received
 					</label>
 					<input
 						id="ledgerPaymentDate"
@@ -66,7 +64,7 @@ export const DuesLedger = ({ action, year, rows }: DuesLedgerProps) => {
 				</div>
 				<div>
 					<label htmlFor="ledgerReference" className={labelClass}>
-						Transaction reference
+						Bank reference
 					</label>
 					<input
 						id="ledgerReference"
@@ -77,38 +75,32 @@ export const DuesLedger = ({ action, year, rows }: DuesLedgerProps) => {
 						onChange={(event) => setReference(event.target.value)}
 						className={inputClass}
 					/>
-					<p className={helpTextClass}>
-						Use this when copying paid months from your Excel book.
-					</p>
 				</div>
+				<p className={`${helpTextClass} sm:mb-2`}>
+					Tick the months a member has paid and a Record button appears on his row. Date and reference apply to
+					each row you record.
+				</p>
 			</div>
-			<div className="overflow-x-auto rounded-xl border border-cream-200">
+			<div className="overflow-x-auto">
 				<table className="min-w-full text-left text-sm">
 					<caption className="sr-only">{year} dues ledger</caption>
-					<thead className="border-b border-cream-200 bg-cream-50">
+					<thead className="border-b border-line text-[0.8125rem] text-slate-500">
 						<tr>
-							<th scope="col" className="sticky left-0 bg-cream-50 px-3 py-3 font-medium text-navy-800">
+							<th scope="col" className="sticky left-0 z-10 bg-white px-4 py-2.5 font-medium sm:pl-6">
 								Member
 							</th>
 							{rows[0]?.ledger.cells.map((cell) => (
-								<th
-									key={cell.month}
-									scope="col"
-									className="px-2 py-3 text-center font-medium text-navy-800"
-								>
+								<th key={cell.month} scope="col" className="px-1 py-2.5 text-center font-medium">
 									{formatMonthShort(cell.month)}
 								</th>
 							))}
-							<th scope="col" className="px-3 py-3 font-medium text-navy-800">
+							<th scope="col" className="px-3 py-2.5 text-right font-medium">
 								Paid
 							</th>
-							<th scope="col" className="px-3 py-3 font-medium text-navy-800">
+							<th scope="col" className="px-3 py-2.5 text-right font-medium">
 								Owing
 							</th>
-							<th scope="col" className="px-3 py-3 font-medium text-navy-800">
-								Year
-							</th>
-							<th scope="col" className="px-3 py-3 font-medium text-navy-800">
+							<th scope="col" className="w-36 px-3 py-2.5 sm:pr-6">
 								<span className="sr-only">Record</span>
 							</th>
 						</tr>
@@ -131,6 +123,43 @@ export const DuesLedger = ({ action, year, rows }: DuesLedgerProps) => {
 				</table>
 			</div>
 		</div>
+	)
+}
+
+const cellBase = 'mx-auto flex h-8 w-9 items-center justify-center rounded-md text-xs font-semibold'
+
+const StateCell = ({ state }: { state: LedgerCell['state'] }) => {
+	if (state === 'paid') {
+		return (
+			<span className={`${cellBase} bg-emerald-700 text-white`} title="Paid">
+				<svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+					<path d="m5 12.5 4.5 4.5L19 7.5" />
+				</svg>
+				<span className="sr-only">Paid</span>
+			</span>
+		)
+	}
+
+	if (state === 'owing') {
+		return (
+			<span className={`${cellBase} bg-amber-100 text-amber-950 ring-1 ring-inset ring-amber-600`} title="Owing">
+				£<span className="sr-only"> owing</span>
+			</span>
+		)
+	}
+
+	if (state === 'waived') {
+		return (
+			<span className={`${cellBase} bg-cream-100 text-slate-500 ring-1 ring-inset ring-slate-300`} title="Waived">
+				W<span className="sr-only">aived</span>
+			</span>
+		)
+	}
+
+	return (
+		<span className={`${cellBase} text-slate-400`} title={state === 'missing' ? 'Not set up' : 'Not yet due'}>
+			–<span className="sr-only">{state === 'missing' ? 'Not set up' : 'Not yet due'}</span>
+		</span>
 	)
 }
 
@@ -162,82 +191,73 @@ const LedgerMemberRow = ({
 	)
 
 	return (
-		<tr className="border-b border-cream-100 last:border-0">
-			<th
-				scope="row"
-				className="sticky left-0 bg-white px-3 py-3 font-medium text-navy-950"
-			>
+		<tr className="border-b border-cream-100 last:border-0 hover:bg-cream-50/60">
+			<th scope="row" className="sticky left-0 z-10 whitespace-nowrap bg-white px-4 py-2 font-medium text-navy-950 sm:pl-6">
 				{memberDisplayName(member)}
 			</th>
 			{ledger.cells.map((cell) => {
 				const canSelect = cell.state === 'owing' && cell.dues
+				const checked = cell.dues ? selectedIds.includes(cell.dues.id) : false
 				return (
-					<td key={cell.month} className="px-2 py-3 text-center">
+					<td key={cell.month} className="px-1 py-2 text-center">
 						{canSelect && cell.dues ? (
-							<label className="inline-flex items-center justify-center">
-								<span className="sr-only">
-									{formatMonthShort(cell.month)} for {memberDisplayName(member)}
-								</span>
+							<label
+								className={`${cellBase} cursor-pointer ring-1 ring-inset transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold-600 ${
+									checked
+										? 'bg-navy-900 text-white ring-navy-900'
+										: 'bg-amber-100 text-amber-950 ring-amber-600 hover:bg-amber-200'
+								}`}
+								title={checked ? 'Selected to record' : 'Owing: tick to record'}
+							>
 								<input
 									type="checkbox"
-									checked={selectedIds.includes(cell.dues.id)}
-									onChange={(event) =>
-										onToggle(member.id, cell.dues?.id ?? '', event.target.checked)
-									}
-									className="h-4 w-4 rounded border-cream-200"
+									checked={checked}
+									onChange={(event) => onToggle(member.id, cell.dues?.id ?? '', event.target.checked)}
+									className="sr-only"
 								/>
+								<span className="sr-only">
+									{formatMonthShort(cell.month)} for {memberDisplayName(member)}, owing
+								</span>
+								<span aria-hidden="true">{checked ? '✓' : '£'}</span>
 							</label>
 						) : (
-							<span
-								className={
-									cell.state === 'paid'
-										? 'font-semibold text-green-800'
-										: cell.state === 'waived'
-											? 'text-navy-500'
-											: 'text-navy-400'
-								}
-							>
-								{cell.state === 'paid'
-									? 'Paid'
-									: cell.state === 'waived'
-										? 'Waived'
-										: cell.state === 'not_due' || cell.state === 'missing'
-											? '—'
-											: 'Owing'}
-							</span>
+							<StateCell state={cell.state} />
 						)}
 					</td>
 				)
 			})}
-			<td className="whitespace-nowrap px-3 py-3 text-navy-800">
-				{formatPenceAsGbp(ledger.paidPence)}
+			<td className="whitespace-nowrap px-3 py-2 text-right text-slate-600">{formatPenceAsGbp(ledger.paidPence)}</td>
+			<td className="whitespace-nowrap px-3 py-2 text-right">
+				{ledger.isUpToDate ? (
+					<span className="text-emerald-700">Up to date</span>
+				) : (
+					<span className="font-semibold text-amber-800">{formatPenceAsGbp(ledger.owingPence)}</span>
+				)}
 			</td>
-			<td className="whitespace-nowrap px-3 py-3 text-navy-800">
-				{ledger.isUpToDate ? 'Up to date' : formatPenceAsGbp(ledger.owingPence)}
-			</td>
-			<td className="whitespace-nowrap px-3 py-3 text-navy-800">
-				{formatPenceAsGbp(ledger.annualPence)}
-			</td>
-			<td className="px-3 py-3">
-				<form action={action} className="flex justify-end">
-					<input type="hidden" name="source" value="payments" />
-					<input type="hidden" name="ledgerYear" value={String(year)} />
-					<input type="hidden" name="memberId" value={member.id} />
-					<input type="hidden" name="paymentDate" value={paymentDate} />
-					<input type="hidden" name="transactionReference" value={reference} />
-					<input type="hidden" name="notes" value={`Recorded from ${year} ledger`} />
-					<input type="hidden" name="amountPounds" value={penceToPoundsInput(selectedTotal)} />
-					{selectedIds.map((id) => (
-						<input key={id} type="hidden" name="duesIds" value={id} />
-					))}
-					<button
-						type="submit"
-						className={primaryButtonClass}
-						disabled={selectedIds.length === 0}
-					>
-						Record
-					</button>
-				</form>
+			<td className="px-3 py-2 sm:pr-6">
+				{selectedIds.length > 0 ? (
+					<form action={action} className="flex justify-end">
+						<input type="hidden" name="source" value="payments" />
+						<input type="hidden" name="ledgerYear" value={String(year)} />
+						<input type="hidden" name="memberId" value={member.id} />
+						<input type="hidden" name="paymentDate" value={paymentDate} />
+						<input type="hidden" name="transactionReference" value={reference} />
+						<input type="hidden" name="notes" value={`Recorded from ${year} ledger`} />
+						<input type="hidden" name="amountPounds" value={penceToPoundsInput(selectedTotal)} />
+						{selectedIds.map((id) => (
+							<input key={id} type="hidden" name="duesIds" value={id} />
+						))}
+						<PendingSubmitButton
+							className={`${primaryButtonClass} ${smallButtonClass} whitespace-nowrap`}
+							pendingLabel="Recording…"
+							aria-label={`Record ${formatPenceAsGbp(selectedTotal)} for ${memberDisplayName(member)}`}
+						>
+							Record {formatPenceAsGbp(selectedTotal)}
+						</PendingSubmitButton>
+					</form>
+				) : (
+					<span className="sr-only">Tick owing months to record a payment</span>
+				)}
 			</td>
 		</tr>
 	)

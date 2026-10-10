@@ -4,18 +4,15 @@ import { getOwnNotices } from '@/server/services/notice-service'
 import { markNoticeReadAction } from '@/server/actions/notice-actions'
 import { notificationTypeLabel } from '@/lib/notifications/display'
 import { formatLondonDateTime } from '@/lib/events/display'
+import { EmptyState } from '@/components/empty-state'
+import { Icon, type IconName } from '@/components/icons'
 import { ListPagination } from '@/components/list-pagination'
 import { PageHeader } from '@/components/page-header'
 import { PendingSubmitButton } from '@/components/pending-submit-button'
+import { SectionCard } from '@/components/section-card'
 import { parsePageParam } from '@/lib/list-pagination'
-import {
-	cardClass,
-	emptyStateClass,
-	pageMainClass,
-	secondaryButtonClass,
-	statusPillClass,
-	statusPillMutedClass,
-} from '@/lib/ui'
+import { ghostButtonClass, pageNarrowClass, smallButtonClass } from '@/lib/ui'
+import type { NotificationType } from '@/types/roles'
 
 export const metadata: Metadata = {
 	title: 'Notices',
@@ -27,6 +24,19 @@ interface NoticesPageProps {
 	}
 }
 
+const noticeIcon = (type: NotificationType): IconName => {
+	if (type === 'DUES_REMINDER') {
+		return 'wallet'
+	}
+	if (type === 'EVENT_REMINDER') {
+		return 'calendar'
+	}
+	if (type === 'MEMBER_INVITE') {
+		return 'mail'
+	}
+	return 'gift'
+}
+
 const noticesHref = (page: number) => (page > 1 ? `/notifications?page=${page}` : '/notifications')
 
 const NoticesPage = async ({ searchParams }: NoticesPageProps) => {
@@ -36,55 +46,70 @@ const NoticesPage = async ({ searchParams }: NoticesPageProps) => {
 		redirect('/login')
 	}
 
+	const unread = notices.items.filter((notice) => !notice.read_at).length
+
 	return (
-		<main className={pageMainClass}>
+		<main className={pageNarrowClass}>
 			<PageHeader
-				eyebrow="Fellowship"
 				title="Notices"
-				lead="Birthday and wedding anniversary notices are built from the dates on each approved member's profile for this month and next month. Event reminders still appear when they are due. Celebration emails are sent on the day: the celebrant receives a personal greeting and other active members receive a separate message."
+				description="Birthdays and anniversaries for this month and next, plus event and dues reminders as they fall due."
 			/>
+
 			{notices.items.length === 0 ? (
-				<p className={emptyStateClass}>
-					There are no notices yet. Birthday and anniversary dates must be saved on an
-					approved member profile.
-				</p>
+				<EmptyState icon="bell" title="No notices yet">
+					Notices appear once members have added birthdays and anniversaries to their profiles.
+				</EmptyState>
 			) : (
-				<>
-					<ul className="mt-8 space-y-4">
-						{notices.items.map((notice) => (
-							<li key={notice.id} className={cardClass}>
-								<div className="flex flex-wrap items-center gap-2">
-									<span className={statusPillClass}>
-										{notificationTypeLabel(notice.notification_type)}
+				<SectionCard
+					title={unread > 0 ? `${unread} unread on this page` : 'All read'}
+					flush
+				>
+					<ul className="divide-y divide-cream-100">
+						{notices.items.map((notice) => {
+							const isUnread = !notice.read_at
+							return (
+								<li
+									key={notice.id}
+									className={`relative flex gap-4 px-5 py-4 sm:px-6 ${isUnread ? 'bg-navy-50/70' : ''}`}
+								>
+									{isUnread ? (
+										<span className="absolute inset-y-0 left-0 w-1 bg-navy-800" aria-hidden="true" />
+									) : null}
+									<span
+										className={`mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+											isUnread ? 'bg-navy-900 text-white' : 'bg-cream-100 text-slate-500'
+										}`}
+									>
+										<Icon name={noticeIcon(notice.notification_type)} className="h-[1.125rem] w-[1.125rem]" />
 									</span>
-									{notice.read_at ? (
-										<span className={statusPillMutedClass}>Read</span>
-									) : (
-										<span className={statusPillClass}>New</span>
-									)}
-								</div>
-								<h2 className="mt-3 font-serif text-xl font-semibold text-navy-950">
-									{notice.title}
-								</h2>
-								<p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-navy-800">
-									{notice.message}
-								</p>
-								<p className="mt-3 text-xs text-navy-800/70">
-									{formatLondonDateTime(notice.scheduled_at)}
-								</p>
-								{notice.read_at ? null : (
-									<form action={markNoticeReadAction} className="mt-4">
-										<input type="hidden" name="notificationId" value={notice.id} />
-										<PendingSubmitButton
-											className={secondaryButtonClass}
-											pendingLabel="Saving…"
-										>
-											Mark as read
-										</PendingSubmitButton>
-									</form>
-								)}
-							</li>
-						))}
+									<div className="min-w-0 flex-1">
+										<div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+											<h2 className={`text-sm text-navy-950 ${isUnread ? 'font-semibold' : 'font-medium'}`}>
+												{notice.title}
+												{isUnread ? <span className="sr-only"> (unread)</span> : null}
+											</h2>
+											<p className="text-xs text-slate-500">
+												{notificationTypeLabel(notice.notification_type)},{' '}
+												<time dateTime={notice.scheduled_at}>{formatLondonDateTime(notice.scheduled_at)}</time>
+											</p>
+										</div>
+										<p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-600">{notice.message}</p>
+										{isUnread ? (
+											<form action={markNoticeReadAction} className="-ml-3 mt-1">
+												<input type="hidden" name="notificationId" value={notice.id} />
+												<PendingSubmitButton
+													className={`${ghostButtonClass} ${smallButtonClass}`}
+													pendingLabel="Saving…"
+												>
+													<Icon name="check" className="h-4 w-4" />
+													Mark as read
+												</PendingSubmitButton>
+											</form>
+										) : null}
+									</div>
+								</li>
+							)
+						})}
 					</ul>
 					<ListPagination
 						page={notices.page}
@@ -93,9 +118,8 @@ const NoticesPage = async ({ searchParams }: NoticesPageProps) => {
 						pageSize={notices.pageSize}
 						hrefForPage={noticesHref}
 						label="Notice pages"
-						className="mt-6 flex flex-col gap-3 text-sm text-navy-800 sm:flex-row sm:items-center sm:justify-between"
 					/>
-				</>
+				</SectionCard>
 			)}
 		</main>
 	)

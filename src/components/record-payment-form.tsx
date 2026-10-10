@@ -4,13 +4,14 @@ import { useMemo, useState } from 'react'
 import { formatDueMonth, getLondonDate } from '@/lib/dates/due-month'
 import { memberDisplayName } from '@/lib/members/display'
 import { addPence, formatPenceAsGbp, penceToPoundsInput } from '@/lib/money'
+import { formatMonthShort } from '@/lib/dates/dues-year'
 import {
+	ghostButtonClass,
 	helpTextClass,
 	inputClass,
 	labelClass,
 	primaryButtonClass,
-	secondaryButtonClass,
-	textareaClass,
+	smallButtonClass,
 } from '@/lib/ui'
 import type { DuesRecord } from '@/types/database'
 import type { Profile } from '@/types/database'
@@ -64,76 +65,88 @@ export const RecordPaymentForm = ({
 	}
 
 	if (members.length === 0) {
-		return <p className="text-sm leading-6 text-navy-800/80">No active members are available.</p>
+		return <p className="text-sm leading-6 text-slate-600">No active members are available.</p>
 	}
 
 	return (
-		<form action={action} className="mt-6 space-y-5">
-			{initialMemberId ? <input type="hidden" name="source" value="member" /> : (
-				<input type="hidden" name="source" value="payments" />
-			)}
+		<form action={action} className="space-y-5">
+			<input type="hidden" name="source" value={initialMemberId ? 'member' : 'payments'} />
 			{ledgerYear ? <input type="hidden" name="ledgerYear" value={String(ledgerYear)} /> : null}
-			<div>
-				<label htmlFor="memberId" className={labelClass}>
-					Member
-				</label>
-				<select
-					id="memberId"
-					name="memberId"
-					required
-					value={memberId}
-					onChange={(event) => handleMemberChange(event.target.value)}
-					className={inputClass}
-				>
-					{members.map((member) => (
-						<option key={member.id} value={member.id}>
-							{memberDisplayName(member)}
-						</option>
-					))}
-				</select>
-			</div>
+			{initialMemberId ? (
+				<input type="hidden" name="memberId" value={memberId} />
+			) : (
+				<div>
+					<label htmlFor="memberId" className={labelClass}>
+						Member
+					</label>
+					<select
+						id="memberId"
+						name="memberId"
+						required
+						value={memberId}
+						onChange={(event) => handleMemberChange(event.target.value)}
+						className={inputClass}
+					>
+						{members.map((member) => (
+							<option key={member.id} value={member.id}>
+								{memberDisplayName(member)}
+							</option>
+						))}
+					</select>
+				</div>
+			)}
 			<fieldset>
-				<legend className={labelClass}>Months</legend>
+				<div className="flex items-center justify-between gap-3">
+					<legend className={labelClass}>Months covered</legend>
+					{months.length > 0 ? (
+						<button
+							type="button"
+							className={`${ghostButtonClass} ${smallButtonClass} -mr-3`}
+							onClick={allSelected ? handleClearMonths : handleSelectAllOutstanding}
+						>
+							{allSelected ? 'Clear' : 'Select all'}
+						</button>
+					) : null}
+				</div>
 				{months.length === 0 ? (
-					<p className={`${helpTextClass} mt-2`}>
+					<p className={`${helpTextClass} rounded-lg bg-cream-50 px-3 py-2.5 ring-1 ring-inset ring-line`}>
 						{ledgerYear
-							? `This brother has no outstanding months in ${ledgerYear}. Open another year on Payments if you need to record an earlier year.`
-							: 'This brother has no outstanding months. Open Payments after the month is generated, or waive a month from his member record.'}
+							? `Nothing outstanding for this member in ${ledgerYear}. Switch year above to record an earlier year.`
+							: 'Nothing outstanding. Months appear once they are set up on Payments, and can be waived from the dues history.'}
 					</p>
 				) : (
 					<>
-						<p className={`${helpTextClass} mt-2`}>
-							Select every outstanding month to record a full-year payment of{' '}
-							{formatPenceAsGbp(allOutstandingTotal)}. Or tick individual months.
-						</p>
-						<div className="mt-3 flex flex-wrap gap-2">
-							<button
-								type="button"
-								className={secondaryButtonClass}
-								onClick={allSelected ? handleClearMonths : handleSelectAllOutstanding}
-							>
-								{allSelected ? 'Clear months' : 'Select all outstanding months'}
-							</button>
-						</div>
-						<ul className="mt-3 space-y-2">
-							{months.map((row) => (
-								<li key={row.id}>
-									<label className="flex items-start gap-3 text-sm text-navy-900">
-										<input
-											type="checkbox"
-											name="duesIds"
-											value={row.id}
-											checked={selectedIds.includes(row.id)}
-											onChange={(event) => handleToggle(row.id, event.target.checked)}
-											className="mt-1 h-4 w-4 rounded border-cream-200"
-										/>
-										<span>
-											{formatDueMonth(row.due_month)} · {formatPenceAsGbp(row.amount_due_pence)}
-										</span>
-									</label>
-								</li>
-							))}
+						<ul className="mt-2 grid grid-cols-3 gap-1.5 sm:grid-cols-4">
+							{months.map((row) => {
+								const checked = selectedIds.includes(row.id)
+								return (
+									<li key={row.id}>
+										<label
+											className={`flex min-h-10 cursor-pointer items-center justify-center rounded-md px-2 text-center text-[0.8125rem] font-medium ring-1 ring-inset transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-1 has-[:focus-visible]:outline-gold-600 ${
+												checked
+													? 'bg-navy-900 text-white ring-navy-900'
+													: 'bg-white text-navy-900 ring-cream-300 hover:bg-cream-50'
+											}`}
+										>
+											<input
+												type="checkbox"
+												name="duesIds"
+												value={row.id}
+												checked={checked}
+												onChange={(event) => handleToggle(row.id, event.target.checked)}
+												className="sr-only"
+											/>
+											{formatMonthShort(row.due_month)} {row.due_month.slice(2, 4)}
+											<span className="sr-only">, {formatDueMonth(row.due_month)}, {formatPenceAsGbp(row.amount_due_pence)}</span>
+										</label>
+									</li>
+								)
+							})}
 						</ul>
+						<p className={helpTextClass}>
+							All {months.length} outstanding {months.length === 1 ? 'month' : 'months'} come to{' '}
+							{formatPenceAsGbp(allOutstandingTotal)}.
+						</p>
 					</>
 				)}
 			</fieldset>
@@ -149,47 +162,51 @@ export const RecordPaymentForm = ({
 					required
 					value={penceToPoundsInput(selectedTotal)}
 					readOnly
-					className={inputClass}
+					aria-describedby="amountPounds-help"
+					className={`${inputClass} font-semibold`}
 				/>
-				<p className={helpTextClass}>
-					Must equal the selected months. Whole months only.
+				<p id="amountPounds-help" className={helpTextClass}>
+					Worked out from the months selected. Whole months only.
 				</p>
 			</div>
-			<div>
-				<label htmlFor="paymentDate" className={labelClass}>
-					Payment date
-				</label>
-				<input
-					id="paymentDate"
-					name="paymentDate"
-					type="date"
-					required
-					defaultValue={getLondonDate()}
-					className={inputClass}
-				/>
-			</div>
-			<div>
-				<label htmlFor="transactionReference" className={labelClass}>
-					Transaction reference
-				</label>
-				<input
-					id="transactionReference"
-					name="transactionReference"
-					type="text"
-					required
-					maxLength={64}
-					className={inputClass}
-				/>
+			<div className="grid gap-4 sm:grid-cols-2">
+				<div>
+					<label htmlFor="paymentDate" className={labelClass}>
+						Date received
+					</label>
+					<input
+						id="paymentDate"
+						name="paymentDate"
+						type="date"
+						required
+						defaultValue={getLondonDate()}
+						className={inputClass}
+					/>
+				</div>
+				<div>
+					<label htmlFor="transactionReference" className={labelClass}>
+						Bank reference
+					</label>
+					<input
+						id="transactionReference"
+						name="transactionReference"
+						type="text"
+						required
+						maxLength={64}
+						className={inputClass}
+					/>
+				</div>
 			</div>
 			<div>
 				<label htmlFor="notes" className={labelClass}>
-					Note
+					Note <span className="font-normal text-slate-500">(optional)</span>
 				</label>
-				<textarea id="notes" name="notes" maxLength={500} className={textareaClass} />
-				<p className={helpTextClass}>Optional.</p>
+				<textarea id="notes" name="notes" maxLength={500} rows={2} className={`${inputClass} min-h-[4rem]`} />
 			</div>
-			<button type="submit" className={primaryButtonClass} disabled={selectedIds.length === 0}>
-				Record payment
+			<button type="submit" className={`${primaryButtonClass} w-full`} disabled={selectedIds.length === 0}>
+				{selectedIds.length === 0
+					? 'Select months to record'
+					: `Record ${formatPenceAsGbp(selectedTotal)} payment`}
 			</button>
 		</form>
 	)

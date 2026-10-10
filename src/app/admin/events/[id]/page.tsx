@@ -1,20 +1,14 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { DeleteEventForm } from '@/components/delete-event-form'
 import { EventForm } from '@/components/event-form'
-import { AlertNotice } from '@/components/alert-notice'
+import { AlertNotice, NoticeStack } from '@/components/alert-notice'
+import { PageHeader } from '@/components/page-header'
+import { SectionCard } from '@/components/section-card'
 import { deleteEventAction, updateEventAction } from '@/server/actions/event-actions'
 import { getAdminEvent } from '@/server/services/event-service'
 import { eventIdSchema } from '@/lib/validation/event'
-import {
-	cardComfortClass,
-	eyebrowClass,
-	navLinkClass,
-	pageContentClass,
-	pageLeadWideClass,
-	pageTitleClass,
-} from '@/lib/ui'
+import { pageNarrowClass } from '@/lib/ui'
 
 interface EditEventPageProps {
 	params: { id: string }
@@ -40,30 +34,26 @@ const EditEventPage = async ({ params, searchParams }: EditEventPageProps) => {
 	}
 
 	return (
-		<main className={pageContentClass}>
-			<p className="mb-6">
-				<Link href="/events" className={navLinkClass}>
-					Back to events
-				</Link>
-			</p>
-			<p className={eyebrowClass}>Administration</p>
-			<h1 className={`${pageTitleClass} mt-3`}>Edit event</h1>
-			<p className={pageLeadWideClass}>{event.title}</p>
-			{searchParams.error ? (
-				<div className="mt-6">
-					<AlertNotice kind="danger" title="Could not save">
-						That event could not be updated. Check the details and try again.
+		<main className={pageNarrowClass}>
+			<PageHeader back={{ href: '/events', label: 'Events' }} title="Edit event" description={event.title} />
+			<NoticeStack>
+				{searchParams.error ? (
+					<AlertNotice kind="danger" title="Changes not saved">
+						Check the title, date and time, then try again.
 					</AlertNotice>
-				</div>
-			) : null}
-			<section className={`${cardComfortClass} mt-8`}>
-				<EventForm
-					action={updateEventAction}
-					event={event}
-					submitLabel="Save changes"
-				/>
-			</section>
-			<DeleteEventForm action={deleteEventAction} eventId={event.id} />
+				) : null}
+			</NoticeStack>
+			<SectionCard>
+				<EventForm action={updateEventAction} event={event} submitLabel="Save changes" />
+			</SectionCard>
+			<SectionCard
+				title="Delete event"
+				tone="danger"
+				description="Removes the gathering from everyone's events list. This can't be undone."
+				className="mt-5"
+			>
+				<DeleteEventForm action={deleteEventAction} eventId={event.id} />
+			</SectionCard>
 		</main>
 	)
 }

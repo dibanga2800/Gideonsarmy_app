@@ -5,11 +5,14 @@ import {
 	resendMemberInviteAction,
 	updateMemberInviteAction,
 } from '@/server/actions/member-actions'
+import { PendingSubmitButton } from '@/components/pending-submit-button'
 import {
+	ghostButtonClass,
 	inputClass,
 	labelClass,
 	primaryButtonClass,
 	secondaryButtonClass,
+	smallButtonClass,
 } from '@/lib/ui'
 
 interface MemberInviteRowProps {
@@ -29,12 +32,9 @@ export const MemberInviteRow = ({
 	const fullName = [firstName, lastName].filter(Boolean).join(' ')
 
 	return (
-		<li className="rounded-xl border border-cream-200 bg-cream-50 p-4">
+		<li className="rounded-lg border border-line bg-cream-50 px-3.5 py-3">
 			{editing ? (
-				<form
-					action={updateMemberInviteAction}
-					className="grid gap-3 sm:grid-cols-2"
-				>
+				<form action={updateMemberInviteAction} className="grid gap-3 sm:grid-cols-2">
 					<input type="hidden" name="inviteId" value={id} />
 					<div className="sm:col-span-2">
 						<label htmlFor={`invite-email-${id}`} className={labelClass}>
@@ -77,12 +77,12 @@ export const MemberInviteRow = ({
 						/>
 					</div>
 					<div className="flex flex-wrap gap-2 sm:col-span-2">
-						<button type="submit" className={primaryButtonClass}>
-							Save &amp; resend invitation
-						</button>
+						<PendingSubmitButton className={`${primaryButtonClass} ${smallButtonClass}`} pendingLabel="Saving…">
+							Save and resend
+						</PendingSubmitButton>
 						<button
 							type="button"
-							className={secondaryButtonClass}
+							className={`${ghostButtonClass} ${smallButtonClass}`}
 							onClick={() => setEditing(false)}
 						>
 							Cancel
@@ -90,26 +90,24 @@ export const MemberInviteRow = ({
 					</div>
 				</form>
 			) : (
-				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-					<div>
-						<p className="font-medium text-navy-950">{email}</p>
-						<p className="mt-1 text-sm text-navy-800">
-							{fullName || 'Name not provided'} · waiting to sign in
-						</p>
+				<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+					<div className="min-w-0">
+						<p className="truncate text-sm font-medium text-navy-950">{email}</p>
+						<p className="text-[0.8125rem] text-slate-500">{fullName || 'No name given'}</p>
 					</div>
-					<div className="flex flex-wrap gap-2">
+					<div className="flex flex-wrap gap-1.5">
 						<button
 							type="button"
-							className={secondaryButtonClass}
+							className={`${ghostButtonClass} ${smallButtonClass}`}
 							onClick={() => setEditing(true)}
 						>
 							Edit
 						</button>
 						<form action={resendMemberInviteAction}>
 							<input type="hidden" name="email" value={email} />
-							<button type="submit" className={secondaryButtonClass}>
-								Resend email
-							</button>
+							<PendingSubmitButton className={`${secondaryButtonClass} ${smallButtonClass}`} pendingLabel="Sending…">
+								Resend
+							</PendingSubmitButton>
 						</form>
 					</div>
 				</div>

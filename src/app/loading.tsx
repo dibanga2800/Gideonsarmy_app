@@ -1,18 +1,22 @@
+const Bar = ({ className }: { className: string }) => (
+	<div className={`animate-pulse rounded-lg bg-cream-200/70 ${className}`} />
+)
+
+/** Skeleton in the shape of a typical page: title, a row of figures, a content block. */
 const LoadingPage = () => {
 	return (
-		<main
-			className="relative flex min-h-[50vh] flex-1 items-center justify-center px-4"
-			aria-busy="true"
-			aria-live="polite"
-		>
-			<div className="flex flex-col items-center gap-4">
-				<div
-					className="h-9 w-9 animate-spin rounded-full border-2 border-cream-200 border-t-gold-500"
-					role="status"
-					aria-label="Loading"
-				/>
-				<p className="text-sm font-medium text-navy-800/70">Loading…</p>
+		<main className="mx-auto w-full max-w-6xl" aria-busy="true" aria-live="polite">
+			<p className="sr-only" role="status">
+				Loading…
+			</p>
+			<Bar className="h-8 w-56" />
+			<Bar className="mt-3 h-4 w-80 max-w-full" />
+			<div className="mt-8 grid gap-4 sm:grid-cols-3">
+				<Bar className="h-28" />
+				<Bar className="h-28" />
+				<Bar className="h-28" />
 			</div>
+			<Bar className="mt-6 h-64" />
 		</main>
 	)
 }
