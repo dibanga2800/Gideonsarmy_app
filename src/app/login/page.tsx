@@ -74,11 +74,7 @@ const LoginPage = ({ searchParams }: LoginPageProps) => {
 	return (
 		<main className="mx-auto flex w-full max-w-5xl flex-1 items-center">
 			<div className="grid w-full overflow-hidden rounded-2xl border border-line bg-white shadow-raised lg:grid-cols-[0.9fr_1.1fr]">
-				<section className="relative hidden flex-col justify-between overflow-hidden bg-navy-950 p-10 text-white lg:flex">
-					<div
-						className="pointer-events-none absolute -bottom-28 -left-20 h-72 w-72 rounded-full border-[24px] border-gold-500/10"
-						aria-hidden="true"
-					/>
+				<section className="lamplight relative hidden flex-col justify-between overflow-hidden p-10 text-white lg:flex">
 					<div className="relative flex items-center gap-3">
 						<FellowshipMark className="h-11 w-11" />
 						<p className="leading-tight">
@@ -87,7 +83,13 @@ const LoginPage = ({ searchParams }: LoginPageProps) => {
 						</p>
 					</div>
 					<div className="relative">
-						<p className="font-serif text-2xl font-semibold leading-snug">
+						<figure className="border-l-2 border-gold-400/60 pl-4">
+							<blockquote className="font-serif text-[1.75rem] font-medium italic leading-snug">
+								The sword of the Lord, and of Gideon.
+							</blockquote>
+							<figcaption className="mt-2 text-sm text-white/60">Judges 7:18</figcaption>
+						</figure>
+						<p className="mt-8 text-base leading-7 text-white/80">
 							Your dues, gatherings and fellowship notices in one place.
 						</p>
 						<ul className="mt-6 space-y-3 text-sm text-white/70">

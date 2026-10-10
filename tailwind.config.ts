@@ -42,6 +42,15 @@ const config: Config = {
 				sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
 				serif: ['var(--font-serif)', 'Georgia', 'serif'],
 			},
+			keyframes: {
+				rise: {
+					'0%': { opacity: '0', transform: 'translateY(6px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' },
+				},
+			},
+			animation: {
+				rise: 'rise 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both',
+			},
 			boxShadow: {
 				card: '0 1px 2px rgba(14, 26, 47, 0.05)',
 				raised: '0 8px 24px -12px rgba(14, 26, 47, 0.25)',

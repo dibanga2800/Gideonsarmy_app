@@ -26,7 +26,7 @@ export const PageHeader = ({ title, description, actions, meta, back }: PageHead
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 				<div className="min-w-0">
 					<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-						<h1 className="font-serif text-[1.75rem] font-semibold leading-tight tracking-tight text-navy-950 sm:text-[2rem]">
+						<h1 className="font-serif text-[2rem] font-semibold leading-tight tracking-tight text-navy-950 sm:text-[2.375rem]">
 							{title}
 						</h1>
 						{meta ? <div className="flex flex-wrap items-center gap-2">{meta}</div> : null}

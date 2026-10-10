@@ -34,18 +34,14 @@ const HomePage = async () => {
 
 	return (
 		<main className="mx-auto w-full max-w-6xl">
-			<section className="relative overflow-hidden rounded-2xl bg-navy-950 px-6 py-10 text-white sm:px-10 sm:py-14 lg:px-14">
-				<div
-					className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full border-[28px] border-gold-500/10"
-					aria-hidden="true"
-				/>
+			<section className="lamplight relative overflow-hidden rounded-2xl px-6 py-10 text-white shadow-raised sm:px-10 sm:py-14 lg:px-14">
 				<div className="relative grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:items-end">
 					<div>
 						<div className="flex items-center gap-3">
 							<FellowshipMark className="h-11 w-11" />
 							<p className="text-sm text-white/70">RCCG Living Water Parish, Stoke-on-Trent</p>
 						</div>
-						<h1 className="mt-6 max-w-xl font-serif text-[2.25rem] font-semibold leading-[1.1] tracking-tight sm:text-5xl">
+						<h1 className="mt-6 max-w-xl font-serif text-[2.5rem] font-semibold leading-[1.05] tracking-tight sm:text-[3.5rem]">
 							Gideon&apos;s Army Men&apos;s Fellowship
 						</h1>
 						<p className="mt-5 max-w-lg text-base leading-7 text-white/75">

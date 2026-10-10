@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { Public_Sans, Source_Serif_4 } from 'next/font/google'
+import { Newsreader, Public_Sans } from 'next/font/google'
 import './globals.css'
 import { AppShell } from '@/components/app-shell'
 
@@ -10,9 +10,12 @@ const sans = Public_Sans({
 	variable: '--font-sans',
 })
 
-const serif = Source_Serif_4({
+// Newsreader carries headings and money figures; its optical sizes keep large
+// numerals crisp and small headings sturdy.
+const serif = Newsreader({
 	subsets: ['latin'],
 	display: 'swap',
+	axes: ['opsz'],
 	variable: '--font-serif',
 })
 

@@ -13,7 +13,7 @@ import { ListPagination } from '@/components/list-pagination'
 import { PageHeader } from '@/components/page-header'
 import { PendingSubmitButton } from '@/components/pending-submit-button'
 import { SectionCard } from '@/components/section-card'
-import { StatTile } from '@/components/stat-tile'
+import { StatGroup } from '@/components/stat-group'
 import { PaymentStatusBadge } from '@/components/status-badge'
 import { formatSortCode } from '@/lib/dues/display'
 import { formatCalendarDate, memberDisplayName } from '@/lib/members/display'
@@ -142,26 +142,27 @@ const PaymentsPage = async ({ searchParams }: PaymentsPageProps) => {
 				) : null}
 			</NoticeStack>
 
-			<div className="grid gap-4 sm:grid-cols-3">
-				<StatTile
-					label={`Members owing in ${page.year}`}
-					value={
-						<>
-							{page.fellowship.owingMembers}
-							<span className="text-base font-normal text-slate-500"> of {page.fellowship.memberCount}</span>
-						</>
-					}
-					icon="users"
-					tone={page.fellowship.owingMembers > 0 ? 'attention' : 'default'}
-				/>
-				<StatTile
-					label="Outstanding this year"
-					value={formatPenceAsGbp(page.fellowship.owingPence)}
-					icon="alert"
-					detail="Months after this one aren't due yet."
-				/>
-				<StatTile label="Recorded this year" value={formatPenceAsGbp(page.fellowship.paidPence)} icon="check" />
-			</div>
+			<StatGroup
+				label={`${page.year} dues summary`}
+				items={[
+					{
+						label: `Members owing in ${page.year}`,
+						value: (
+							<>
+								{page.fellowship.owingMembers}
+								<span className="font-sans text-base font-normal text-slate-600"> of {page.fellowship.memberCount}</span>
+							</>
+						),
+						attention: page.fellowship.owingMembers > 0,
+					},
+					{
+						label: 'Outstanding this year',
+						value: formatPenceAsGbp(page.fellowship.owingPence),
+						detail: "Months after this one aren't due yet",
+					},
+					{ label: 'Recorded this year', value: formatPenceAsGbp(page.fellowship.paidPence) },
+				]}
+			/>
 
 			<SectionCard
 				title={`${page.year} ledger`}

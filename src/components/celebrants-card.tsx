@@ -59,7 +59,7 @@ export const CelebrantsCard = ({ celebrations }: CelebrantsCardProps) => {
 	return (
 		<SectionCard title={`Birthdays and anniversaries in ${celebrations.monthLabel}`}>
 			{today.length > 0 ? (
-				<div className="mb-5 rounded-lg bg-navy-950 px-4 py-3.5 text-white">
+				<div className="lamplight mb-5 rounded-lg px-4 py-3.5 text-white">
 					<p className="text-sm font-semibold text-gold-300">Celebrating today</p>
 					<ul className="mt-1.5 flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium">
 						{today.map((item) => (

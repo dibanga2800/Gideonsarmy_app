@@ -10,12 +10,11 @@ import { CelebrantsCard } from '@/components/celebrants-card'
 import { DateBlock, formatLondonTime, formatLondonWeekdayDate } from '@/components/date-block'
 import { DuesMonthStrip } from '@/components/dues-month-strip'
 import { Icon, type IconName } from '@/components/icons'
-import { PageHeader } from '@/components/page-header'
+import { HeroPanel } from '@/components/hero-panel'
 import { SectionCard } from '@/components/section-card'
-import { ComplianceBadge } from '@/components/status-badge'
 import { getNextPrayerMeeting } from '@/lib/dates/prayer-meeting'
 import { formatPenceAsGbp } from '@/lib/money'
-import { pageMainClass, secondaryButtonClass } from '@/lib/ui'
+import { navLinkClass, pageMainClass } from '@/lib/ui'
 
 export const metadata: Metadata = {
 	title: 'Overview',
@@ -60,81 +59,89 @@ const DashboardPage = async () => {
 			: []),
 	]
 
+	const londonToday = new Intl.DateTimeFormat('en-GB', {
+		timeZone: 'Europe/London',
+		weekday: 'long',
+		day: 'numeric',
+		month: 'long',
+	}).format(new Date())
+
 	return (
 		<main className={pageMainClass}>
-			<PageHeader title={`${greeting()}, ${firstName}`} description="Here's where things stand this month." />
+			<HeroPanel labelledBy="overview-heading">
+				<div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+					<h1 id="overview-heading" className="font-serif text-[2rem] font-semibold leading-tight tracking-tight sm:text-[2.5rem]">
+						{greeting()}, {firstName}
+					</h1>
+					<p className="text-sm text-white/70">{londonToday}</p>
+				</div>
 
-			<div className="grid gap-5 lg:grid-cols-3 lg:items-start">
-				<SectionCard
-					title={duesSummary ? `Your dues for ${duesSummary.year}` : 'Your dues'}
-					className="lg:col-span-2"
-				>
+				<div className="mt-7 border-t border-white/10 pt-6">
 					{duesSummary ? (
-						<>
-							<div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-								<p className="text-3xl font-semibold tracking-tight text-navy-950">
+						<div className="grid gap-6 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:gap-x-10 lg:gap-y-5">
+							<div>
+								<p className="text-sm text-white/70">Your dues for {duesSummary.year}</p>
+								<p className="mt-2 font-serif text-[2.75rem] font-semibold leading-none tracking-tight tabular-nums">
 									{duesSummary.compliance.isUpToDate
-										? 'All paid to date'
-										: `${formatPenceAsGbp(duesSummary.compliance.outstandingPence)} to pay`}
+										? formatPenceAsGbp(duesSummary.yearLedger.paidPence)
+										: formatPenceAsGbp(duesSummary.compliance.outstandingPence)}
 								</p>
-								<ComplianceBadge isUpToDate={duesSummary.compliance.isUpToDate} />
+								<p className="mt-2 text-sm text-white/80">
+									{duesSummary.compliance.isUpToDate
+										? 'paid so far. You are up to date. Thank you.'
+										: `to pay, ${duesSummary.compliance.owingMonths} ${duesSummary.compliance.owingMonths === 1 ? 'month' : 'months'} outstanding.`}
+								</p>
 							</div>
-							<p className="mt-1 text-sm text-slate-600">
-								{duesSummary.compliance.isUpToDate
-									? `${formatPenceAsGbp(duesSummary.yearLedger.paidPence)} recorded so far this year. Thank you.`
-									: `${duesSummary.compliance.owingMonths} ${duesSummary.compliance.owingMonths === 1 ? 'month' : 'months'} outstanding this year.`}
-							</p>
-							<div className="mt-5">
-								<DuesMonthStrip cells={duesSummary.yearLedger.cells} year={duesSummary.year} />
-							</div>
-							{duesSummary.owingYears.length > 0 ? (
-								<p className="mt-4 flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
-									<Icon name="alert" className="mt-0.5 h-4 w-4 text-amber-600" />
-									<span>
-										There are also unpaid months from {duesSummary.owingYears.join(', ')}.{' '}
+							<div className="min-w-0 lg:row-span-2 lg:pt-1">
+								<DuesMonthStrip cells={duesSummary.yearLedger.cells} year={duesSummary.year} tone="dark" />
+								{duesSummary.owingYears.length > 0 ? (
+									<p className="mt-4 text-sm text-white/80">
+										You also have unpaid months in{' '}
 										<Link
 											href={`/dues?year=${duesSummary.owingYears[0]}`}
-											className="font-semibold underline underline-offset-2"
+											className="font-semibold text-white underline decoration-white/40 underline-offset-4 hover:decoration-white"
 										>
-											View {duesSummary.owingYears[0]}
+											{duesSummary.owingYears.join(', ')}
 										</Link>
-									</span>
-								</p>
-							) : null}
-							<Link href="/dues" className={`${secondaryButtonClass} mt-5`}>
-								{duesSummary.compliance.isUpToDate ? 'View dues' : 'How to pay'}
-								<Icon name="arrow-right" className="h-4 w-4" />
-							</Link>
-						</>
-					) : (
-						<p className="text-sm text-slate-600">Your dues record isn&apos;t available right now.</p>
-					)}
-				</SectionCard>
-
-				<div className="flex flex-col gap-5">
-					<section
-						aria-labelledby="next-meeting-heading"
-						className="relative flex flex-col overflow-hidden rounded-xl bg-navy-950 p-5 text-white shadow-card sm:p-6"
-					>
-						<h2 id="next-meeting-heading" className="text-base font-semibold">
-							Next prayer meeting
-						</h2>
-						<div className="mt-5 flex items-center gap-4">
-							<DateBlock value={nextPrayerMeeting} tone="dark" />
+										.
+									</p>
+								) : null}
+							</div>
 							<div>
-								<p className="font-semibold">{formatLondonWeekdayDate(nextPrayerMeeting)}</p>
-								<p className="mt-0.5 text-sm text-white/70">{formatLondonTime(nextPrayerMeeting)}, UK time</p>
+								<Link
+									href="/dues"
+									className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-white px-4 text-sm font-semibold text-navy-950 transition-colors hover:bg-gold-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-300"
+								>
+									{duesSummary.compliance.isUpToDate ? 'View your dues' : 'How to pay'}
+									<Icon name="arrow-right" className="h-4 w-4" />
+								</Link>
 							</div>
 						</div>
-						<p className="mt-5 text-sm leading-6 text-white/60">Second Thursday of every month.</p>
-						<Link
-							href="/events"
-							className="mt-auto inline-flex items-center gap-1.5 self-start rounded-md pt-5 text-sm font-semibold text-gold-300 hover:text-gold-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-300"
-						>
+					) : (
+						<p className="text-sm text-white/80">Your dues record isn&apos;t available right now.</p>
+					)}
+				</div>
+			</HeroPanel>
+
+			<div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+				<div className="order-2 min-w-0 lg:order-1">
+					{celebrants ? <CelebrantsCard celebrations={celebrants} /> : null}
+				</div>
+
+				<div className="order-1 flex flex-col gap-6 lg:order-2">
+					<SectionCard title="Next prayer meeting">
+						<div className="flex items-center gap-4">
+							<DateBlock value={nextPrayerMeeting} />
+							<div>
+								<p className="font-semibold text-navy-950">{formatLondonWeekdayDate(nextPrayerMeeting)}</p>
+								<p className="mt-0.5 text-sm text-slate-600">{formatLondonTime(nextPrayerMeeting)}, UK time</p>
+							</div>
+						</div>
+						<p className="mt-4 text-sm leading-6 text-slate-600">Every second Thursday of the month.</p>
+						<Link href="/events" className={`${navLinkClass} mt-3 inline-block text-sm`}>
 							All gatherings
-							<Icon name="arrow-right" className="h-4 w-4" />
 						</Link>
-					</section>
+					</SectionCard>
 
 					{todos.length > 0 ? (
 						<SectionCard title="Needs your attention" flush>
@@ -158,12 +165,6 @@ const DashboardPage = async () => {
 					) : null}
 				</div>
 			</div>
-
-			{celebrants ? (
-				<div className="mt-5">
-					<CelebrantsCard celebrations={celebrants} />
-				</div>
-			) : null}
 		</main>
 	)
 }

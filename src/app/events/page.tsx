@@ -136,7 +136,7 @@ const EventsPage = async ({ searchParams }: EventsPageProps) => {
 			{nextItem ? (
 				<section
 					aria-labelledby="next-gathering"
-					className="rounded-xl bg-navy-950 p-5 text-white shadow-card sm:p-7"
+					className="lamplight rounded-2xl p-5 text-white shadow-raised sm:p-7"
 				>
 					<p className="text-sm text-white/60">Next gathering</p>
 					<div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-center">

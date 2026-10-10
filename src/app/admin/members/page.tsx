@@ -21,7 +21,7 @@ import { MemberInviteRow } from '@/components/member-invite-row'
 import { PageHeader } from '@/components/page-header'
 import { PendingSubmitButton } from '@/components/pending-submit-button'
 import { SectionCard } from '@/components/section-card'
-import { StatTile } from '@/components/stat-tile'
+import { StatGroup } from '@/components/stat-group'
 import { MembershipBadge, RoleBadge, StatusBadge } from '@/components/status-badge'
 import {
 	memberDirectorySearchSchema,
@@ -230,17 +230,19 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 				) : null}
 			</NoticeStack>
 
-			<div className="grid gap-4 sm:grid-cols-3">
-				<StatTile
-					label="Awaiting approval"
-					value={pendingPage.total}
-					icon="clock"
-					tone={pendingPage.total > 0 ? 'attention' : 'default'}
-					detail={pendingPage.total > 0 ? 'Review below' : 'Nobody waiting'}
-				/>
-				<StatTile label={directoryLabel} value={directory.total} icon="users" detail="In the current filter" />
-				<StatTile label="Open invitations" value={invites.total} icon="mail" detail="Not signed in yet" />
-			</div>
+			<StatGroup
+				label="Membership summary"
+				items={[
+					{
+						label: 'Awaiting approval',
+						value: pendingPage.total,
+						detail: pendingPage.total > 0 ? 'Review them below' : 'Nobody waiting',
+						attention: pendingPage.total > 0,
+					},
+					{ label: directoryLabel, value: directory.total, detail: 'In the current filter' },
+					{ label: 'Open invitations', value: invites.total, detail: "Invited but not signed in yet", href: '#invite' },
+				]}
+			/>
 
 			{pendingPage.members.length > 0 ? (
 				<SectionCard

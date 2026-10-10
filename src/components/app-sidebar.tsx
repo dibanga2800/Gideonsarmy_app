@@ -176,12 +176,18 @@ export const AppSidebar = ({ isAdmin, unreadNoticeCount, memberName, memberEmail
 	}, [open])
 
 	const panel = (extra?: ReactNode) => (
-		<div className="flex h-full flex-col bg-navy-950">
+		<div className="lamplight flex h-full flex-col">
 			<div className="flex h-16 items-center justify-between gap-3 border-b border-white/10 px-5">
 				<Brand />
 				{extra}
 			</div>
 			<NavList groups={groups} pathname={pathname} />
+			<figure className="mx-5 mb-4 border-l-2 border-gold-400/60 pl-3">
+				<blockquote className="font-serif text-[0.9375rem] italic leading-snug text-white/80">
+					The sword of the Lord, and of Gideon.
+				</blockquote>
+				<figcaption className="mt-1 text-xs text-white/55">Judges 7:18</figcaption>
+			</figure>
 			<AccountFooter memberName={memberName} memberEmail={memberEmail} />
 		</div>
 	)

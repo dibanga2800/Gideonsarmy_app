@@ -47,7 +47,7 @@ export const SectionCard = ({
 						{title ? (
 							<h2
 								id={headingId}
-								className={`text-base font-semibold ${tone === 'danger' ? 'text-red-800' : 'text-navy-950'}`}
+								className={`font-serif text-[1.1875rem] font-semibold leading-snug ${tone === 'danger' ? 'text-red-800' : 'text-navy-950'}`}
 							>
 								{title}
 							</h2>

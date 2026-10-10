@@ -18,11 +18,11 @@ import {
 import { CopyValue } from '@/components/copy-value'
 import { DuesMonthStrip } from '@/components/dues-month-strip'
 import { EmptyState } from '@/components/empty-state'
-import { Icon } from '@/components/icons'
+import { HeroPanel } from '@/components/hero-panel'
 import { LedgerYearNav } from '@/components/ledger-year-nav'
 import { PageHeader } from '@/components/page-header'
 import { SectionCard } from '@/components/section-card'
-import { ComplianceBadge, DuesStatusBadge, PaymentStatusBadge } from '@/components/status-badge'
+import { DuesStatusBadge, PaymentStatusBadge } from '@/components/status-badge'
 
 export const metadata: Metadata = {
 	title: 'Dues',
@@ -34,10 +34,10 @@ interface DuesPageProps {
 	}
 }
 
-const Figure = ({ label, value, emphasis = false }: { label: string; value: string; emphasis?: boolean }) => (
+const Figure = ({ label, value }: { label: string; value: string }) => (
 	<div>
-		<dt className="text-[0.8125rem] text-slate-500">{label}</dt>
-		<dd className={`mt-0.5 text-lg font-semibold ${emphasis ? 'text-amber-800' : 'text-navy-950'}`}>{value}</dd>
+		<dt className="text-[0.8125rem] text-white/70">{label}</dt>
+		<dd className="mt-0.5 font-serif text-xl font-semibold tabular-nums">{value}</dd>
 	</div>
 )
 
@@ -63,47 +63,47 @@ const DuesPage = async ({ searchParams }: DuesPageProps) => {
 			/>
 
 			<div className="grid gap-5 lg:grid-cols-3">
-				<SectionCard title={`${page.year} at a glance`} className="lg:col-span-2">
-					<div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-						<p className="text-3xl font-semibold tracking-tight text-navy-950">
-							{ledger.isUpToDate ? 'All paid to date' : `${formatPenceAsGbp(ledger.owingPence)} to pay`}
+				<HeroPanel labelledBy="year-heading" className="lg:col-span-2">
+					<h2 id="year-heading" className="text-sm text-white/70">
+						Your {page.year} dues
+					</h2>
+					<p className="mt-2 font-serif text-[2.75rem] font-semibold leading-none tracking-tight tabular-nums">
+						{ledger.isUpToDate ? 'All paid to date' : formatPenceAsGbp(ledger.owingPence)}
+					</p>
+					{ledger.isUpToDate ? null : (
+						<p className="mt-2 text-sm text-white/80">
+							to pay, {ledger.owingMonths} {ledger.owingMonths === 1 ? 'month' : 'months'} outstanding
 						</p>
-						<ComplianceBadge isUpToDate={ledger.isUpToDate} />
+					)}
+					<div className="mt-6">
+						<DuesMonthStrip cells={ledger.cells} year={page.year} tone="dark" />
 					</div>
-					<div className="mt-5">
-						<DuesMonthStrip cells={ledger.cells} year={page.year} />
-					</div>
-					<dl className="mt-6 grid grid-cols-3 gap-4 border-t border-line pt-5">
+					<dl className="mt-6 grid grid-cols-3 gap-4 border-t border-white/10 pt-5">
 						<Figure label="Due so far" value={formatPenceAsGbp(ledger.dueToDatePence)} />
 						<Figure label="Recorded" value={formatPenceAsGbp(ledger.paidPence)} />
-						<Figure
-							label={ledger.owingMonths === 1 ? '1 month to pay' : `${ledger.owingMonths} months to pay`}
-							value={formatPenceAsGbp(ledger.owingPence)}
-							emphasis={!ledger.isUpToDate}
-						/>
+						<Figure label="Full year" value={formatPenceAsGbp(ledger.annualPence)} />
 					</dl>
-					<p className="mt-4 text-[0.8125rem] leading-5 text-slate-500">
-						Full year {formatPenceAsGbp(ledger.annualPence)}. Unpaid months stay on the year they belong to and
-						aren&apos;t carried into the next.
-					</p>
-					{page.owingYears.length > 0 ? (
-						<p className="mt-4 flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
-							<Icon name="alert" className="mt-0.5 h-4 w-4 text-amber-600" />
-							<span>
-								You also have unpaid months in{' '}
+					<p className="mt-4 text-[0.8125rem] leading-5 text-white/70">
+						Unpaid months stay on the year they belong to and aren&apos;t carried into the next.
+						{page.owingYears.length > 0 ? (
+							<>
+								{' '}You also have unpaid months in{' '}
 								{page.owingYears.map((year, index) => (
 									<span key={year}>
 										{index > 0 ? ', ' : null}
-										<Link href={`/dues?year=${year}`} className="font-semibold underline underline-offset-2">
+										<Link
+											href={`/dues?year=${year}`}
+											className="font-semibold text-white underline decoration-white/40 underline-offset-4 hover:decoration-white"
+										>
 											{year}
 										</Link>
 									</span>
 								))}
 								.
-							</span>
-						</p>
-					) : null}
-				</SectionCard>
+							</>
+						) : null}
+					</p>
+				</HeroPanel>
 
 				<SectionCard
 					title="Pay by bank transfer"
@@ -133,7 +133,7 @@ const DuesPage = async ({ searchParams }: DuesPageProps) => {
 				</SectionCard>
 			</div>
 
-			<div className="mt-5 grid gap-5 xl:grid-cols-2">
+			<div className="mt-5 grid gap-5 xl:grid-cols-2 xl:items-start">
 				<SectionCard title={`Month by month, ${page.year}`} flush>
 					{months.length === 0 ? (
 						<EmptyState icon="calendar" title="No months set up yet" compact>
