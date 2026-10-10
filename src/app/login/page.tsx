@@ -6,8 +6,8 @@ import { loginErrorSchema } from '@/lib/validation/login'
 import { AlertNotice } from '@/components/alert-notice'
 import { FellowshipMark } from '@/components/fellowship-mark'
 import { PendingSubmitButton } from '@/components/pending-submit-button'
+import { Icon } from '@/components/icons'
 import {
-	helpTextClass,
 	inputClass,
 	labelClass,
 	navLinkClass,
@@ -72,162 +72,135 @@ const LoginPage = ({ searchParams }: LoginPageProps) => {
 	const message = errorMessage(searchParams.error)
 
 	return (
-		<main className="relative flex flex-1 flex-col overflow-hidden">
-			<div
-				className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(196,163,90,0.16),_transparent_55%),linear-gradient(180deg,#fbf8f2_0%,#f4eee3_48%,#ebe3d4_100%)]"
-				aria-hidden="true"
-			/>
-			<div
-				className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-navy-950 via-gold-500 to-navy-950"
-				aria-hidden="true"
-			/>
-
-			<div className="relative mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-				<div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
-					<section className="max-w-xl">
-						<div className="flex items-center gap-4">
-							<FellowshipMark className="h-14 w-14 sm:h-16 sm:w-16" />
-							<div>
-								<p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold-600">
-									RCCG Living Water Parish
-								</p>
-								<p className="mt-1 font-serif text-2xl font-semibold tracking-tight text-navy-950 sm:text-3xl">
-									Gideon&apos;s Army
-								</p>
-							</div>
-						</div>
-						<h1 className="mt-8 font-serif text-4xl font-semibold tracking-tight text-navy-950 sm:text-5xl">
-							Welcome back
-						</h1>
-						<p className="mt-4 max-w-md text-base leading-7 text-navy-800/80 sm:text-lg sm:leading-8">
-							Sign in to view dues, gatherings, and fellowship notices. Access is
-							granted only after an administrator approves membership.
+		<main className="mx-auto flex w-full max-w-5xl flex-1 items-center">
+			<div className="grid w-full overflow-hidden rounded-2xl border border-line bg-white shadow-raised lg:grid-cols-[0.9fr_1.1fr]">
+				<section className="relative hidden flex-col justify-between overflow-hidden bg-navy-950 p-10 text-white lg:flex">
+					<div
+						className="pointer-events-none absolute -bottom-28 -left-20 h-72 w-72 rounded-full border-[24px] border-gold-500/10"
+						aria-hidden="true"
+					/>
+					<div className="relative flex items-center gap-3">
+						<FellowshipMark className="h-11 w-11" />
+						<p className="leading-tight">
+							<span className="block font-serif text-lg font-semibold">Gideon&apos;s Army</span>
+							<span className="block text-sm text-white/60">RCCG Living Water Parish</span>
 						</p>
-						<ul className="mt-8 hidden gap-3 text-sm text-navy-800/75 sm:grid">
-							<li className="flex gap-2">
-								<span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold-500" aria-hidden="true" />
-								Use Google when your fellowship email is Gmail.
+					</div>
+					<div className="relative">
+						<p className="font-serif text-2xl font-semibold leading-snug">
+							Your dues, gatherings and fellowship notices in one place.
+						</p>
+						<ul className="mt-6 space-y-3 text-sm text-white/70">
+							<li className="flex gap-3">
+								<Icon name="shield" className="h-5 w-5 text-gold-300" />
+								Accounts open only after an administrator approves membership.
 							</li>
-							<li className="flex gap-2">
-								<span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold-500" aria-hidden="true" />
-								Use email and password if you were invited with another address.
+							<li className="flex gap-3">
+								<Icon name="mail" className="h-5 w-5 text-gold-300" />
+								Use the email address your invitation was sent to.
 							</li>
 						</ul>
-					</section>
+					</div>
+				</section>
 
-					<section className="rounded-2xl border border-cream-200/90 bg-white/90 p-6 shadow-[0_24px_60px_-28px_rgba(11,18,32,0.45)] backdrop-blur-sm sm:p-8">
-						{message ? (
-							<div className="mb-6">
-								<AlertNotice kind="danger" title="Sign-in could not continue">
-									{message}
-								</AlertNotice>
+				<section className="p-6 sm:p-10">
+					<h1 className="font-serif text-[1.75rem] font-semibold tracking-tight text-navy-950">Sign in</h1>
+					<p className="mt-1.5 text-sm leading-6 text-slate-600">
+						Welcome back. Choose how you were invited.
+					</p>
+
+					{message ? (
+						<div className="mt-6">
+							<AlertNotice kind="danger" title="Sign-in didn't go through">
+								{message}
+							</AlertNotice>
+						</div>
+					) : null}
+
+					{configured ? (
+						<div className="mt-7 space-y-6">
+							<form action={signInWithGoogle}>
+								<PendingSubmitButton
+									className={`${secondaryButtonClass} min-h-11 w-full`}
+									pendingLabel="Opening Google…"
+								>
+									<GoogleMark />
+									Continue with Google
+								</PendingSubmitButton>
+							</form>
+
+							<div className="flex items-center gap-3" aria-hidden="true">
+								<div className="h-px flex-1 bg-line" />
+								<span className="text-xs text-slate-400">or with email</span>
+								<div className="h-px flex-1 bg-line" />
 							</div>
-						) : null}
 
-						{configured ? (
-							<div className="space-y-6">
-								<form action={signInWithGoogle}>
-									<PendingSubmitButton
-										className={`${primaryButtonClass} w-full gap-3`}
-										pendingLabel="Opening Google…"
-									>
-										<GoogleMark />
-										Continue with Google
-									</PendingSubmitButton>
-								</form>
-
-								<div className="flex items-center gap-3" aria-hidden="true">
-									<div className="h-px flex-1 bg-cream-200" />
-									<span className="text-xs font-semibold uppercase tracking-[0.18em] text-navy-800/45">
-										or
-									</span>
-									<div className="h-px flex-1 bg-cream-200" />
-								</div>
-
+							<form action={signInWithPasswordAction} className="space-y-4">
 								<div>
-									<h2 className="font-serif text-lg font-semibold text-navy-950">
-										Email and password
-									</h2>
-									<p className="mt-1 text-sm leading-6 text-navy-800/75">
-										For brothers invited with a non-Gmail address.
-									</p>
+									<label htmlFor="email" className={labelClass}>
+										Email
+									</label>
+									<input
+										id="email"
+										name="email"
+										type="email"
+										autoComplete="username"
+										required
+										maxLength={254}
+										className={inputClass}
+									/>
 								</div>
+								<div>
+									<label htmlFor="password" className={labelClass}>
+										Password
+									</label>
+									<input
+										id="password"
+										name="password"
+										type="password"
+										autoComplete="current-password"
+										required
+										minLength={10}
+										maxLength={72}
+										className={inputClass}
+									/>
+								</div>
+								<PendingSubmitButton
+									className={`${primaryButtonClass} min-h-11 w-full`}
+									pendingLabel="Signing in…"
+								>
+									Sign in with email
+								</PendingSubmitButton>
+							</form>
 
-								<form action={signInWithPasswordAction} className="space-y-5">
-									<div>
-										<label htmlFor="email" className={labelClass}>
-											Email
-										</label>
-										<input
-											id="email"
-											name="email"
-											type="email"
-											autoComplete="username"
-											required
-											maxLength={254}
-											className={inputClass}
-										/>
-									</div>
-									<div>
-										<label htmlFor="password" className={labelClass}>
-											Password
-										</label>
-										<input
-											id="password"
-											name="password"
-											type="password"
-											autoComplete="current-password"
-											required
-											minLength={10}
-											maxLength={72}
-											className={inputClass}
-										/>
-									</div>
-									<PendingSubmitButton
-										className={`${secondaryButtonClass} w-full`}
-										pendingLabel="Signing in…"
-									>
-										Sign in with email
-									</PendingSubmitButton>
-								</form>
-
-								<p className={helpTextClass}>
-									Invited and need to choose a password?{' '}
-									<Link href="/signup" className={navLinkClass}>
-										Create a password
-									</Link>
-								</p>
-							</div>
-						) : (
-							<div className="text-navy-800">
-								<h2 className="font-serif text-lg font-semibold text-navy-950">
-									Your setup is needed
-								</h2>
-								<p className="mt-3 text-sm leading-6">
-									Create a Supabase project, enable Google Auth and Email Auth, apply
-									the database migration, then add these values to{' '}
-									<code className="whitespace-nowrap rounded bg-cream-100 px-1">
-										.env.local
-									</code>
-									:
-								</p>
-								<ul className="mt-3 list-disc space-y-1 pl-5 text-sm">
-									<li>NEXT_PUBLIC_SUPABASE_URL</li>
-									<li>NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
-									<li>SUPABASE_SERVICE_ROLE_KEY</li>
-									<li>NEXT_PUBLIC_SITE_URL</li>
-								</ul>
-								<p className="mt-3 text-sm leading-6">
-									Step-by-step instructions are in{' '}
-									<code className="whitespace-nowrap rounded bg-cream-100 px-1">
-										docs/supabase-setup.md
-									</code>
-									.
-								</p>
-							</div>
-						)}
-					</section>
-				</div>
+							<p className="border-t border-line pt-5 text-sm text-slate-600">
+								Invited without a Gmail address?{' '}
+								<Link href="/signup" className={navLinkClass}>
+									Create a password
+								</Link>
+							</p>
+						</div>
+					) : (
+						<div className="mt-7 rounded-xl bg-cream-50 p-5 text-sm text-navy-800 ring-1 ring-inset ring-line">
+							<h2 className="font-semibold text-navy-950">Your setup is needed</h2>
+							<p className="mt-2 leading-6">
+								Create a Supabase project, enable Google and Email sign-in, apply the database
+								migrations, then add these values to{' '}
+								<code className="whitespace-nowrap rounded bg-white px-1 ring-1 ring-line">.env.local</code>:
+							</p>
+							<ul className="mt-3 space-y-1 font-mono text-[0.8125rem]">
+								<li>NEXT_PUBLIC_SUPABASE_URL</li>
+								<li>NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
+								<li>SUPABASE_SERVICE_ROLE_KEY</li>
+								<li>NEXT_PUBLIC_SITE_URL</li>
+							</ul>
+							<p className="mt-3 leading-6">
+								Step-by-step instructions are in{' '}
+								<code className="whitespace-nowrap rounded bg-white px-1 ring-1 ring-line">docs/supabase-setup.md</code>.
+							</p>
+						</div>
+					)}
+				</section>
 			</div>
 		</main>
 	)

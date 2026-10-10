@@ -2,7 +2,10 @@
 
 import { useState, type ChangeEvent } from 'react'
 import { compressPortraitFile } from '@/lib/members/compress-portrait-file'
-import { helpTextClass, inputClass, labelClass } from '@/lib/ui'
+import { helpTextClass, labelClass } from '@/lib/ui'
+
+const fileInputClass =
+	'mt-1.5 block w-full rounded-lg border border-dashed border-cream-300 bg-cream-50 p-2 text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-navy-900 file:shadow-card file:ring-1 file:ring-line hover:file:bg-cream-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500'
 
 interface PortraitFileFieldProps {
 	name?: string
@@ -49,11 +52,18 @@ export const PortraitFileField = ({
 				type="file"
 				required
 				accept="image/jpeg,image/png,image/webp"
-				className={inputClass}
+				className={fileInputClass}
+				aria-describedby={`${name}-help`}
 				onChange={handleChange}
 			/>
-			<p className={helpTextClass}>{helpText}</p>
-			{error ? <p className="mt-2 text-sm text-red-800">{error}</p> : null}
+			<p id={`${name}-help`} className={helpTextClass}>
+				{helpText}
+			</p>
+			{error ? (
+				<p className="mt-2 text-sm text-red-700" role="alert">
+					{error}
+				</p>
+			) : null}
 		</div>
 	)
 }

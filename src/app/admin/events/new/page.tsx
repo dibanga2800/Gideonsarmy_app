@@ -1,19 +1,13 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { EventForm } from '@/components/event-form'
-import { AlertNotice } from '@/components/alert-notice'
+import { AlertNotice, NoticeStack } from '@/components/alert-notice'
+import { PageHeader } from '@/components/page-header'
+import { SectionCard } from '@/components/section-card'
 import { createEventAction } from '@/server/actions/event-actions'
 import { getCurrentSession } from '@/server/services/auth-service'
 import { canAccessAdmin } from '@/lib/auth/access'
-import {
-	cardComfortClass,
-	eyebrowClass,
-	navLinkClass,
-	pageContentClass,
-	pageLeadWideClass,
-	pageTitleClass,
-} from '@/lib/ui'
+import { pageNarrowClass } from '@/lib/ui'
 
 export const metadata: Metadata = {
 	title: 'Add event',
@@ -33,28 +27,22 @@ const NewEventPage = async ({ searchParams }: NewEventPageProps) => {
 	}
 
 	return (
-		<main className={pageContentClass}>
-			<p className="mb-6">
-				<Link href="/events" className={navLinkClass}>
-					Back to events
-				</Link>
-			</p>
-			<p className={eyebrowClass}>Administration</p>
-			<h1 className={`${pageTitleClass} mt-3`}>Add event</h1>
-			<p className={pageLeadWideClass}>
-				Create a fellowship gathering. Prayer meeting dates stay calculated and
-				are not added as individual rows.
-			</p>
-			{searchParams.error ? (
-				<div className="mt-6">
-					<AlertNotice kind="danger" title="Could not save">
-						That event could not be saved. Check the details and try again.
+		<main className={pageNarrowClass}>
+			<PageHeader
+				back={{ href: '/events', label: 'Events' }}
+				title="Add event"
+				description="For one-off fellowship gatherings. Monthly prayer meetings are added automatically."
+			/>
+			<NoticeStack>
+				{searchParams.error ? (
+					<AlertNotice kind="danger" title="Event not saved">
+						Check the title, date and time, then try again.
 					</AlertNotice>
-				</div>
-			) : null}
-			<section className={`${cardComfortClass} mt-8`}>
-				<EventForm action={createEventAction} submitLabel="Save event" />
-			</section>
+				) : null}
+			</NoticeStack>
+			<SectionCard>
+				<EventForm action={createEventAction} submitLabel="Add event" />
+			</SectionCard>
 		</main>
 	)
 }

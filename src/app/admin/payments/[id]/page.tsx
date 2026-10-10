@@ -3,23 +3,22 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { reviewPaymentAction } from '@/server/actions/payment-actions'
 import { getAdminPaymentDetail } from '@/server/services/dues-service'
-import { AlertNotice } from '@/components/alert-notice'
+import { AlertNotice, NoticeStack } from '@/components/alert-notice'
+import { Icon } from '@/components/icons'
+import { PageHeader } from '@/components/page-header'
+import { SectionCard } from '@/components/section-card'
+import { DuesStatusBadge, PaymentStatusBadge } from '@/components/status-badge'
 import { formatDueMonth } from '@/lib/dates/due-month'
-import { duesStatusLabel, paymentSubmissionStatusLabel } from '@/lib/dues/display'
+import { formatCalendarDate, memberDisplayName } from '@/lib/members/display'
 import { formatPenceAsGbp } from '@/lib/money'
 import { evidenceIdSchema } from '@/lib/validation/payment'
 import {
-	cardClass,
+	dangerOutlineButtonClass,
 	ddClass,
 	dtClass,
-	eyebrowClass,
 	labelClass,
-	navLinkClass,
-	pageLeadClass,
-	pageNarrowClass,
-	pageTitleClass,
+	pageContentClass,
 	primaryButtonClass,
-	secondaryButtonClass,
 	textareaClass,
 } from '@/lib/ui'
 
@@ -47,127 +46,114 @@ const PaymentDetailPage = async ({ params, searchParams }: PaymentDetailPageProp
 		redirect('/admin/payments')
 	}
 
-	const memberName = detail.member
-		? `${detail.member.first_name} ${detail.member.last_name}`
-		: 'Member'
+	const memberName = detail.member ? memberDisplayName(detail.member) || detail.member.email : 'Member'
 	const canReview = detail.submission.status === 'SUBMITTED'
 
 	return (
-		<main className={pageNarrowClass}>
-			<p className="mb-6">
-				<Link href="/admin/payments" className={navLinkClass}>
-					Back to payments
-				</Link>
-			</p>
-			<p className={eyebrowClass}>Payment submission</p>
-			<h1 className={`${pageTitleClass} mt-3`}>{memberName}</h1>
-			<p className={pageLeadClass}>
-				{formatPenceAsGbp(detail.submission.amount_pence)} ·{' '}
-				{paymentSubmissionStatusLabel(detail.submission.status)}
-			</p>
+		<main className={pageContentClass}>
+			<PageHeader
+				back={{ href: '/admin/payments', label: 'Payments' }}
+				title={`${formatPenceAsGbp(detail.submission.amount_pence)} from ${memberName}`}
+				meta={<PaymentStatusBadge status={detail.submission.status} />}
+			/>
 
-			{searchParams.updated === '1' ? (
-				<div className="mt-6">
-					<AlertNotice kind="success" title="Saved">
-						The payment review has been saved.
+			<NoticeStack>
+				{searchParams.updated === '1' ? (
+					<AlertNotice kind="success" title="Review saved">
+						The member&apos;s dues now reflect your decision.
 					</AlertNotice>
-				</div>
-			) : null}
-
-			{searchParams.error ? (
-				<div className="mt-6">
-					<AlertNotice kind="danger" title="Could not save">
-						That review could not be saved. Check that the payment is still waiting
-						for confirmation.
+				) : null}
+				{searchParams.error ? (
+					<AlertNotice kind="danger" title="Review not saved">
+						This payment may already have been reviewed. Refresh the page and check its status.
 					</AlertNotice>
-				</div>
-			) : null}
+				) : null}
+			</NoticeStack>
 
-			<dl className={`${cardClass} mt-8 grid gap-4 text-sm`}>
-				<div>
-					<dt className={dtClass}>Email</dt>
-					<dd className={ddClass}>{detail.member?.email ?? 'Not available'}</dd>
-				</div>
-				<div>
-					<dt className={dtClass}>Month</dt>
-					<dd className={ddClass}>
-						{detail.dues ? formatDueMonth(detail.dues.due_month) : 'Not available'}
-					</dd>
-				</div>
-				<div>
-					<dt className={dtClass}>Dues status</dt>
-					<dd className={ddClass}>
-						{detail.dues ? duesStatusLabel(detail.dues.status) : 'Not available'}
-					</dd>
-				</div>
-				<div>
-					<dt className={dtClass}>Payment date</dt>
-					<dd className={ddClass}>{detail.submission.payment_date}</dd>
-				</div>
-				<div>
-					<dt className={dtClass}>Transaction reference</dt>
-					<dd className={ddClass}>{detail.submission.transaction_reference}</dd>
-				</div>
-				<div>
-					<dt className={dtClass}>Note</dt>
-					<dd className={ddClass}>{detail.submission.notes ?? 'None'}</dd>
-				</div>
-				<div>
-					<dt className={dtClass}>Evidence</dt>
-					<dd className={ddClass}>
-						{detail.evidence.length === 0
-							? 'None'
-							: detail.evidence.map((file) => (
-									<Link
-										key={file.id}
-										href={`/payment-evidence/${file.id}`}
-										className={navLinkClass}
-									>
-										{file.original_filename}
-									</Link>
-								))}
-					</dd>
-				</div>
-			</dl>
+			<div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+				<SectionCard title="Payment details">
+					<dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+						<div>
+							<dt className={dtClass}>Member</dt>
+							<dd className={ddClass}>{memberName}</dd>
+							<dd className="text-[0.8125rem] text-slate-500">{detail.member?.email ?? 'Email not available'}</dd>
+						</div>
+						<div>
+							<dt className={dtClass}>Month</dt>
+							<dd className={ddClass}>{detail.dues ? formatDueMonth(detail.dues.due_month) : 'Not available'}</dd>
+							{detail.dues ? (
+								<dd className="mt-1">
+									<DuesStatusBadge status={detail.dues.status} />
+								</dd>
+							) : null}
+						</div>
+						<div>
+							<dt className={dtClass}>Date received</dt>
+							<dd className={ddClass}>{formatCalendarDate(detail.submission.payment_date)}</dd>
+						</div>
+						<div>
+							<dt className={dtClass}>Bank reference</dt>
+							<dd className={`${ddClass} break-all`}>{detail.submission.transaction_reference}</dd>
+						</div>
+						<div className="sm:col-span-2">
+							<dt className={dtClass}>Note</dt>
+							<dd className={`${ddClass} whitespace-pre-wrap font-normal`}>{detail.submission.notes ?? 'None'}</dd>
+						</div>
+						<div className="sm:col-span-2">
+							<dt className={dtClass}>Evidence</dt>
+							<dd className="mt-1">
+								{detail.evidence.length === 0 ? (
+									<span className="text-sm text-slate-500">None attached</span>
+								) : (
+									<ul className="space-y-1.5">
+										{detail.evidence.map((file) => (
+											<li key={file.id}>
+												<Link
+													href={`/payment-evidence/${file.id}`}
+													className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-navy-900 ring-1 ring-inset ring-line hover:bg-cream-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500"
+												>
+													<Icon name="file" className="h-4 w-4 text-slate-500" />
+													{file.original_filename}
+												</Link>
+											</li>
+										))}
+									</ul>
+								)}
+							</dd>
+						</div>
+					</dl>
+				</SectionCard>
 
-			{canReview ? (
-				<form action={reviewPaymentAction} className={`${cardClass} mt-8 space-y-5`}>
-					<input type="hidden" name="submissionId" value={detail.submission.id} />
-					<div>
-						<label htmlFor="reviewerNote" className={labelClass}>
-							Reviewer note
-						</label>
-						<textarea
-							id="reviewerNote"
-							name="reviewerNote"
-							maxLength={500}
-							className={textareaClass}
-						/>
-					</div>
-					<div className="flex flex-wrap gap-3">
-						<button
-							type="submit"
-							name="decision"
-							value="CONFIRMED"
-							className={primaryButtonClass}
-						>
-							Confirm payment
-						</button>
-						<button
-							type="submit"
-							name="decision"
-							value="REJECTED"
-							className={secondaryButtonClass}
-						>
-							Reject
-						</button>
-					</div>
-				</form>
-			) : (
-				<p className={`${cardClass} mt-8 text-navy-800`}>
-					This submission has already been reviewed.
-				</p>
-			)}
+				{canReview ? (
+					<SectionCard title="Review" description="Confirm once you've seen the money arrive in the parish account.">
+						<form action={reviewPaymentAction} className="space-y-4">
+							<input type="hidden" name="submissionId" value={detail.submission.id} />
+							<div>
+								<label htmlFor="reviewerNote" className={labelClass}>
+									Note <span className="font-normal text-slate-500">(optional)</span>
+								</label>
+								<textarea id="reviewerNote" name="reviewerNote" maxLength={500} className={textareaClass} />
+							</div>
+							<div className="flex flex-col gap-2">
+								<button type="submit" name="decision" value="CONFIRMED" className={primaryButtonClass}>
+									<Icon name="check" className="h-4 w-4" />
+									Confirm payment
+								</button>
+								<button type="submit" name="decision" value="REJECTED" className={dangerOutlineButtonClass}>
+									Reject payment
+								</button>
+							</div>
+						</form>
+					</SectionCard>
+				) : (
+					<SectionCard title="Review">
+						<p className="flex items-start gap-2 text-sm text-slate-600">
+							<Icon name="check" className="mt-0.5 h-4 w-4 text-emerald-600" />
+							This payment has already been reviewed.
+						</p>
+					</SectionCard>
+				)}
+			</div>
 		</main>
 	)
 }

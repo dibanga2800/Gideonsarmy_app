@@ -110,6 +110,13 @@ export const getOwnCurrentDues = async () => {
 	return {
 		current: dues.find((row) => row.due_month === currentMonth) ?? null,
 		compliance: summariseDuesCompliance(dues, year),
+		yearLedger: buildMemberYearLedger(
+			dues,
+			year,
+			new Date(),
+			DEFAULT_MONTHLY_DUES_PENCE,
+			duesStartMonthFromJoinedAt(session.profile?.joined_at ?? null),
+		),
 		year,
 		owingYears: listOwingLedgerYears(dues).filter((owingYear) => owingYear !== year),
 	}

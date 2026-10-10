@@ -11,34 +11,42 @@ import {
 	createMemberManuallyAction,
 	inviteMemberAction,
 } from '@/server/actions/member-actions'
-import { AlertNotice } from '@/components/alert-notice'
+import { AlertNotice, NoticeStack } from '@/components/alert-notice'
+import { EmptyState } from '@/components/empty-state'
+import { Icon } from '@/components/icons'
+import { MemberAvatar } from '@/components/member-avatar'
 import { MembersPagination } from '@/components/members-pagination'
 import { ListPagination } from '@/components/list-pagination'
 import { MemberInviteRow } from '@/components/member-invite-row'
 import { PageHeader } from '@/components/page-header'
+import { PendingSubmitButton } from '@/components/pending-submit-button'
+import { SectionCard } from '@/components/section-card'
+import { StatTile } from '@/components/stat-tile'
+import { MembershipBadge, RoleBadge, StatusBadge } from '@/components/status-badge'
 import {
 	memberDirectorySearchSchema,
 	memberStatusFilterSchema,
 } from '@/lib/validation/member'
-import { membershipStatusLabel, roleLabel } from '@/lib/members/display'
+import { memberDisplayName } from '@/lib/members/display'
 import { DEFAULT_LIST_PAGE_SIZE, parsePageParam } from '@/lib/list-pagination'
 import {
-	cardComfortClass,
-	emptyStateClass,
-	eyebrowClass,
 	filterActiveClass,
 	filterIdleClass,
 	formGridClass,
 	formSpanFullClass,
+	ghostButtonClass,
 	helpTextClass,
 	inputClass,
 	labelClass,
-	navLinkClass,
 	pageContentClass,
 	primaryButtonClass,
 	secondaryButtonClass,
-	sectionHeadingClass,
-	tableWrapClass,
+	smallButtonClass,
+	tableClass,
+	tdClass,
+	thClass,
+	theadClass,
+	trClass,
 } from '@/lib/ui'
 
 export const metadata: Metadata = {
@@ -155,269 +163,229 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 		return `/admin/members?${params.toString()}`
 	}
 
+	const directoryLabel =
+		statusParam === 'all'
+			? 'All members'
+			: statusParam === 'PENDING'
+				? 'Pending members'
+				: statusParam === 'INACTIVE'
+					? 'Inactive members'
+					: 'Active members'
+
 	return (
 		<main className={pageContentClass}>
 			<PageHeader
-				eyebrow="Administration"
 				title="Members"
-				lead="Approve new brothers first, then manage the active directory. Invite by email when you can; add manually if mail delivery fails."
-				leadWide
+				description="Approve new brothers, keep the directory current, and send invitations."
+				actions={
+					<Link href="#invite" className={primaryButtonClass}>
+						<Icon name="mail" className="h-4 w-4" />
+						Invite a member
+					</Link>
+				}
 			/>
 
-			{searchParams.approved === '1' ? (
-				<div className="mt-6">
+			<NoticeStack>
+				{searchParams.approved === '1' ? (
 					<AlertNotice kind="success" title="Member approved">
-						That brother is now an active member.
+						He is now an active member and can sign in to the full portal.
 					</AlertNotice>
-				</div>
-			) : null}
-
-			{searchParams.invited === '1' ? (
-				<div className="mt-6">
-					<AlertNotice kind="success" title="Invitation saved">
+				) : null}
+				{searchParams.invited === '1' ? (
+					<AlertNotice kind={searchParams.email === '0' ? 'danger' : 'success'} title="Invitation saved">
 						{searchParams.email === '0'
-							? 'The invitation was saved, but the email could not be sent. Ask him to open Signup or Login with that address, or add him manually.'
-							: 'The invitation has been sent. He remains pending until you approve membership.'}
+							? "The invitation was saved, but the email didn't send. Ask him to sign in or create a password with that address, or add him manually."
+							: 'The invitation email has been sent. He stays pending until you approve him.'}
 					</AlertNotice>
-				</div>
-			) : null}
-
-			{searchParams.updated === '1' ? (
-				<div className="mt-6">
+				) : null}
+				{searchParams.updated === '1' ? (
 					<AlertNotice kind={searchParams.email === '0' ? 'danger' : 'success'} title="Invitation updated">
 						{searchParams.email === '0'
-							? 'The invitation details were saved, but the updated email could not be sent. Use Resend email to try again.'
-							: 'The invitation details were saved and a fresh email was sent.'}
+							? "The details were saved, but the email didn't send. Use Resend to try again."
+							: 'The details were saved and a fresh email was sent.'}
 					</AlertNotice>
-				</div>
-			) : null}
-
-			{searchParams.error === 'invite' ? (
-				<div className="mt-6">
-					<AlertNotice kind="danger" title="Invitation failed">
+				) : null}
+				{searchParams.error === 'invite' ? (
+					<AlertNotice kind="danger" title="Invitation not sent">
 						{inviteErrorMessage(searchParams.reason)}
 					</AlertNotice>
-				</div>
-			) : null}
-
-			{searchParams.error === 'create' ? (
-				<div className="mt-6">
-					<AlertNotice kind="danger" title="Could not add member">
+				) : null}
+				{searchParams.error === 'create' ? (
+					<AlertNotice kind="danger" title="Member not added">
 						{createErrorMessage(searchParams.reason)}
 					</AlertNotice>
-				</div>
-			) : null}
-
-			{searchParams.error === 'approve' ? (
-				<div className="mt-6">
-					<AlertNotice kind="danger" title="Could not approve">
-						That membership could not be approved. Open the member record and try
-						again.
+				) : null}
+				{searchParams.error === 'approve' ? (
+					<AlertNotice kind="danger" title="Member not approved">
+						Open his record and try again from there.
 					</AlertNotice>
-				</div>
-			) : null}
-
-			{searchParams.error &&
-			searchParams.error !== 'invite' &&
-			searchParams.error !== 'create' &&
-			searchParams.error !== 'approve' ? (
-				<div className="mt-6">
-					<AlertNotice kind="danger" title="Could not update">
-						That membership update could not be completed.
+				) : null}
+				{searchParams.error &&
+				searchParams.error !== 'invite' &&
+				searchParams.error !== 'create' &&
+				searchParams.error !== 'approve' ? (
+					<AlertNotice kind="danger" title="Membership not updated">
+						That change couldn&apos;t be completed. Try again.
 					</AlertNotice>
-				</div>
-			) : null}
+				) : null}
+			</NoticeStack>
 
-			<section className="mt-8 grid gap-4 sm:grid-cols-3">
-				<div className={cardComfortClass}>
-					<p className={eyebrowClass}>Awaiting approval</p>
-					<p className="mt-3 font-serif text-3xl font-semibold text-navy-950">
-						{pendingPage.total}
-					</p>
-					<p className="mt-1 text-sm text-navy-800/80">Pending members</p>
-				</div>
-				<div className={cardComfortClass}>
-					<p className={eyebrowClass}>Directory</p>
-					<p className="mt-3 font-serif text-3xl font-semibold text-navy-950">
-						{directory.total}
-					</p>
-					<p className="mt-1 text-sm text-navy-800/80">
-						{statusParam === 'all'
-							? 'All members in this view'
-							: statusParam === 'PENDING'
-								? 'Pending in directory'
-								: statusParam === 'INACTIVE'
-									? 'Inactive members'
-									: 'Active members'}
-					</p>
-				</div>
-				<div className={cardComfortClass}>
-					<p className={eyebrowClass}>Open invites</p>
-					<p className="mt-3 font-serif text-3xl font-semibold text-navy-950">
-						{invites.total}
-					</p>
-					<p className="mt-1 text-sm text-navy-800/80">Waiting to sign in</p>
-				</div>
-			</section>
+			<div className="grid gap-4 sm:grid-cols-3">
+				<StatTile
+					label="Awaiting approval"
+					value={pendingPage.total}
+					icon="clock"
+					tone={pendingPage.total > 0 ? 'attention' : 'default'}
+					detail={pendingPage.total > 0 ? 'Review below' : 'Nobody waiting'}
+				/>
+				<StatTile label={directoryLabel} value={directory.total} icon="users" detail="In the current filter" />
+				<StatTile label="Open invitations" value={invites.total} icon="mail" detail="Not signed in yet" />
+			</div>
 
 			{pendingPage.members.length > 0 ? (
-				<section className={`${cardComfortClass} mt-8`}>
-					<p className={eyebrowClass}>New members</p>
-					<h2 className={`${sectionHeadingClass} mt-2`}>Awaiting approval</h2>
-					<p className="mt-2 max-w-3xl text-sm leading-6 text-navy-800/80">
-						These brothers have signed in or been added, but are not yet active.
-						Approve them here, or open the record to review details first.
-					</p>
-					<ul className="mt-6 divide-y divide-cream-100">
+				<SectionCard
+					title="Awaiting approval"
+					description="These brothers have signed in or been added but can't use the portal yet."
+					className="mt-5"
+					flush
+				>
+					<ul className="divide-y divide-cream-100">
 						{pendingPage.members.map((member) => (
 							<li
 								key={member.id}
-								className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 lg:flex-row lg:items-center lg:justify-between"
+								className="flex flex-col gap-3 px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-6"
 							>
-								<div>
-									<p className="font-medium text-navy-950">
-										{member.first_name} {member.last_name}
-									</p>
-									<p className="mt-1 text-sm text-navy-800">{member.email}</p>
+								<div className="flex min-w-0 items-center gap-3">
+									<MemberAvatar name={memberDisplayName(member) || member.email} />
+									<div className="min-w-0">
+										<p className="truncate text-sm font-semibold text-navy-950">
+											{memberDisplayName(member) || 'Name not added yet'}
+										</p>
+										<p className="truncate text-[0.8125rem] text-slate-500">{member.email}</p>
+									</div>
 								</div>
 								<div className="flex flex-wrap gap-2">
-									<form action={approveMemberAction}>
-										<input type="hidden" name="memberId" value={member.id} />
-										<button type="submit" className={primaryButtonClass}>
-											Approve member
-										</button>
-									</form>
 									<Link
 										href={`/admin/members/${member.id}`}
-										className={secondaryButtonClass}
+										className={`${secondaryButtonClass} ${smallButtonClass}`}
 									>
-										Review record
+										Review
 									</Link>
+									<form action={approveMemberAction}>
+										<input type="hidden" name="memberId" value={member.id} />
+										<PendingSubmitButton className={`${primaryButtonClass} ${smallButtonClass}`} pendingLabel="Approving…">
+											<Icon name="check" className="h-4 w-4" />
+											Approve
+										</PendingSubmitButton>
+									</form>
 								</div>
 							</li>
 						))}
 					</ul>
-				</section>
+				</SectionCard>
 			) : null}
 
-			<section className="mt-10">
-				<div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-					<div>
-						<p className={eyebrowClass}>Directory</p>
-						<h2 className={`${sectionHeadingClass} mt-2`}>Fellowship members</h2>
-					</div>
-					<nav className="flex flex-wrap gap-2" aria-label="Filter members">
+			<SectionCard title="Directory" className="mt-5" flush>
+				<div className="flex flex-col gap-3 border-b border-line px-5 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+					<nav className="flex flex-wrap gap-1" aria-label="Filter members">
 						<FilterLink href={filterHref()} active={statusParam === 'ACTIVE'}>
 							Active
 						</FilterLink>
-						<FilterLink
-							href={filterHref('PENDING')}
-							active={statusParam === 'PENDING'}
-						>
+						<FilterLink href={filterHref('PENDING')} active={statusParam === 'PENDING'}>
 							Pending
 						</FilterLink>
-						<FilterLink
-							href={filterHref('INACTIVE')}
-							active={statusParam === 'INACTIVE'}
-						>
+						<FilterLink href={filterHref('INACTIVE')} active={statusParam === 'INACTIVE'}>
 							Inactive
 						</FilterLink>
 						<FilterLink href={filterHref('all')} active={statusParam === 'all'}>
 							All
 						</FilterLink>
 					</nav>
+					<form method="get" role="search" className="flex gap-2 lg:w-96">
+						{filterQuery ? <input type="hidden" name="status" value={filterQuery} /> : null}
+						<div className="relative min-w-0 flex-1">
+							<Icon
+								name="search"
+								className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+							/>
+							<input
+								type="search"
+								name="q"
+								defaultValue={search}
+								placeholder="Search name or email"
+								aria-label="Search members by name or email"
+								className={`${inputClass} mt-0 pl-9`}
+								maxLength={100}
+							/>
+						</div>
+						<button type="submit" className={secondaryButtonClass}>
+							Search
+						</button>
+						{search ? (
+							<Link href={filterHref(filterQuery, false)} className={ghostButtonClass}>
+								Clear
+							</Link>
+						) : null}
+					</form>
 				</div>
-
-				<form method="get" className="mt-5 flex flex-col gap-3 sm:flex-row">
-					{filterQuery ? (
-						<input type="hidden" name="status" value={filterQuery} />
-					) : null}
-					<input
-						type="search"
-						name="q"
-						defaultValue={search}
-						placeholder="Search name or email"
-						aria-label="Search fellowship members by name or email"
-						className={`${inputClass} min-w-0 flex-1`}
-						maxLength={100}
-					/>
-					<button type="submit" className={secondaryButtonClass}>
-						Search
-					</button>
-					{search ? (
-						<Link
-							href={filterHref(filterQuery, false)}
-							className={secondaryButtonClass}
-						>
-							Clear search
-						</Link>
-					) : null}
-				</form>
-
 				{!parsedSearch.success ? (
-					<p className="mt-2 text-sm text-red-800" role="alert">
-						Search using letters, numbers, spaces, apostrophes, hyphens, periods,
-						+ or @.
+					<p className="border-b border-line bg-red-50 px-5 py-2.5 text-sm text-red-800 sm:px-6" role="alert">
+						Search using letters, numbers, spaces, apostrophes, hyphens, full stops, + or @.
 					</p>
 				) : null}
 
 				{directory.members.length === 0 ? (
-					<p className={emptyStateClass}>
-						{search
-							? 'No members match your search and filter.'
-							: 'No members match this filter.'}
-					</p>
+					<EmptyState icon="users" title={search ? 'No members match that search' : 'No members in this view'} compact>
+						{search ? 'Try a different name or email, or switch filter.' : 'Try another filter.'}
+					</EmptyState>
 				) : (
-					<div className={`${tableWrapClass} mt-6`}>
-						<table className="min-w-full text-left text-sm">
-							<caption className="sr-only">Fellowship members</caption>
-							<thead className="border-b border-cream-200 bg-cream-50">
-								<tr>
-									<th scope="col" className="px-4 py-3 font-medium text-navy-800">
-										Name
-									</th>
-									<th scope="col" className="px-4 py-3 font-medium text-navy-800">
-										Email
-									</th>
-									<th scope="col" className="px-4 py-3 font-medium text-navy-800">
-										Status
-									</th>
-									<th scope="col" className="px-4 py-3 font-medium text-navy-800">
-										Role
-									</th>
-									<th scope="col" className="px-4 py-3 font-medium text-navy-800">
-										<span className="sr-only">Open</span>
-									</th>
-								</tr>
-							</thead>
-							<tbody>
-								{directory.members.map((member) => (
-									<tr
-										key={member.id}
-										className="border-b border-cream-100 last:border-0"
-									>
-										<td className="px-4 py-3 font-medium text-navy-950">
-											{member.first_name} {member.last_name}
-										</td>
-										<td className="px-4 py-3 text-navy-800">{member.email}</td>
-										<td className="px-4 py-3 text-navy-800">
-											{membershipStatusLabel(member.membership_status)}
-										</td>
-										<td className="px-4 py-3 text-navy-800">
-											{roleLabel(member.role)}
-										</td>
-										<td className="px-4 py-3 text-right">
-											<Link
-												href={`/admin/members/${member.id}`}
-												className={navLinkClass}
-											>
-												Open
-											</Link>
-										</td>
+					<>
+						<div className="overflow-x-auto">
+							<table className={tableClass}>
+								<caption className="sr-only">Fellowship members</caption>
+								<thead className={theadClass}>
+									<tr>
+										<th scope="col" className={thClass}>Member</th>
+										<th scope="col" className={thClass}>Status</th>
+										<th scope="col" className={thClass}>Role</th>
+										<th scope="col" className={thClass}>
+											<span className="sr-only">Open record</span>
+										</th>
 									</tr>
-								))}
-							</tbody>
-						</table>
+								</thead>
+								<tbody>
+									{directory.members.map((member) => (
+										<tr key={member.id} className={`${trClass} hover:bg-cream-50`}>
+											<td className={tdClass}>
+												<div className="flex items-center gap-3">
+													<MemberAvatar name={memberDisplayName(member) || member.email} />
+													<div className="min-w-0">
+														<p className="font-medium text-navy-950">{memberDisplayName(member) || '—'}</p>
+														<p className="text-[0.8125rem] text-slate-500">{member.email}</p>
+													</div>
+												</div>
+											</td>
+											<td className={tdClass}>
+												<MembershipBadge status={member.membership_status} />
+											</td>
+											<td className={tdClass}>
+												<RoleBadge role={member.role} />
+											</td>
+											<td className={`${tdClass} text-right`}>
+												<Link
+													href={`/admin/members/${member.id}`}
+													className={`${ghostButtonClass} ${smallButtonClass}`}
+													aria-label={`Open record for ${memberDisplayName(member) || member.email}`}
+												>
+													Open
+													<Icon name="arrow-right" className="h-4 w-4" />
+												</Link>
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
 						<MembersPagination
 							page={directory.page}
 							totalPages={directory.totalPages}
@@ -427,27 +395,25 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 							search={search}
 							invitePage={invitePage}
 						/>
-					</div>
+					</>
 				)}
-			</section>
+			</SectionCard>
 
-			<section className="mt-10 grid gap-6 xl:grid-cols-2">
-				<div className={cardComfortClass}>
-					<p className={eyebrowClass}>Invite</p>
-					<h2 className={`${sectionHeadingClass} mt-2`}>Invite by email</h2>
-					<p className="mt-2 text-sm leading-6 text-navy-800/80">
-						He can sign in with Google or create a password at signup. If mail
-						does not arrive, check Spam, use Resend, or add him manually.
-					</p>
-					{emailStatus ? (
-						<p className="mt-3 text-sm leading-6 text-navy-800">
-							Delivery:{' '}
-							<span className="font-semibold">{emailStatus.label}</span>
-							{' · '}
-							{emailStatus.detail}
-						</p>
+			<div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+				<SectionCard
+					id="invite"
+					title="Invite by email"
+					description="He can then sign in with Google, or create a password if his address isn't Gmail. If the email doesn't arrive, ask him to check spam, resend, or add him manually."
+					actions={
+						emailStatus ? (
+							<StatusBadge tone={emailStatus.ready ? 'positive' : 'warning'}>{emailStatus.label}</StatusBadge>
+						) : undefined
+					}
+				>
+					{emailStatus && !emailStatus.ready ? (
+						<p className="mb-4 text-sm text-slate-600">{emailStatus.detail}</p>
 					) : null}
-					<form action={inviteMemberAction} className={`mt-6 ${formGridClass}`}>
+					<form action={inviteMemberAction} className={formGridClass}>
 						<div className={formSpanFullClass}>
 							<label htmlFor="invite_email" className={labelClass}>
 								Email
@@ -464,75 +430,62 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 						</div>
 						<div>
 							<label htmlFor="invite_first_name" className={labelClass}>
-								First name
+								First name <span className="font-normal text-slate-500">(optional)</span>
 							</label>
-							<input
-								id="invite_first_name"
-								name="first_name"
-								type="text"
-								maxLength={80}
-								className={inputClass}
-							/>
+							<input id="invite_first_name" name="first_name" type="text" maxLength={80} className={inputClass} />
 						</div>
 						<div>
 							<label htmlFor="invite_last_name" className={labelClass}>
-								Last name
+								Last name <span className="font-normal text-slate-500">(optional)</span>
 							</label>
-							<input
-								id="invite_last_name"
-								name="last_name"
-								type="text"
-								maxLength={80}
-								className={inputClass}
-							/>
+							<input id="invite_last_name" name="last_name" type="text" maxLength={80} className={inputClass} />
 						</div>
 						<div className={formSpanFullClass}>
-							<button type="submit" className={primaryButtonClass}>
+							<PendingSubmitButton className={primaryButtonClass} pendingLabel="Sending…">
 								Send invitation
-							</button>
+							</PendingSubmitButton>
 						</div>
 					</form>
-					{openInvites.length > 0 ? (
-						<>
-							<ul className="mt-6 space-y-4 border-t border-cream-100 pt-4 text-sm text-navy-800">
-								{openInvites.map((invite) => (
-									<MemberInviteRow
-										key={invite.id}
-										id={invite.id}
-										email={invite.email}
-										firstName={invite.first_name}
-										lastName={invite.last_name}
-									/>
-								))}
-							</ul>
-							<ListPagination
-								page={invites.page}
-								totalPages={invites.totalPages}
-								total={invites.total}
-								pageSize={invites.pageSize}
-								hrefForPage={inviteHrefForPage}
-								label="Invitation list pages"
-								className="mt-4 flex flex-col gap-3 border-t border-cream-100 pt-4 text-sm text-navy-800 sm:flex-row sm:items-center sm:justify-between"
-							/>
-						</>
-					) : (
-						<p className="mt-6 border-t border-cream-100 pt-4 text-sm text-navy-800/75">
-							There are no open email invitations.
-						</p>
-					)}
-				</div>
 
-				<div className={cardComfortClass}>
-					<p className={eyebrowClass}>Backup</p>
-					<h2 className={`${sectionHeadingClass} mt-2`}>Add member manually</h2>
-					<p className="mt-2 text-sm leading-6 text-navy-800/80">
-						Creates the account now with a temporary password you can share
-						privately. Prefer Pending, then approve after he signs in.
-					</p>
-					<form
-						action={createMemberManuallyAction}
-						className={`mt-6 ${formGridClass}`}
-					>
+					<div className="mt-6 border-t border-line pt-5">
+						<h3 className="text-sm font-semibold text-navy-950">
+							Open invitations
+							<span className="ml-2 font-normal text-slate-500">{invites.total}</span>
+						</h3>
+						{openInvites.length > 0 ? (
+							<>
+								<ul className="mt-3 space-y-2">
+									{openInvites.map((invite) => (
+										<MemberInviteRow
+											key={invite.id}
+											id={invite.id}
+											email={invite.email}
+											firstName={invite.first_name}
+											lastName={invite.last_name}
+										/>
+									))}
+								</ul>
+								<ListPagination
+									page={invites.page}
+									totalPages={invites.totalPages}
+									total={invites.total}
+									pageSize={invites.pageSize}
+									hrefForPage={inviteHrefForPage}
+									label="Invitation list pages"
+									className="mt-3 flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between"
+								/>
+							</>
+						) : (
+							<p className="mt-2 text-sm text-slate-500">Everyone invited has signed in.</p>
+						)}
+					</div>
+				</SectionCard>
+
+				<SectionCard
+					title="Add an account manually"
+					description="Creates the account straight away with a temporary password you share with him privately. Use this when email invitations aren't getting through."
+				>
+					<form action={createMemberManuallyAction} className={formGridClass}>
 						<div className={formSpanFullClass}>
 							<label htmlFor="create_email" className={labelClass}>
 								Email
@@ -588,8 +541,11 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 								maxLength={72}
 								className={inputClass}
 								autoComplete="new-password"
+								aria-describedby="create_password_help"
 							/>
-							<p className={helpTextClass}>At least 10 characters.</p>
+							<p id="create_password_help" className={helpTextClass}>
+								At least 10 characters.
+							</p>
 						</div>
 						<div>
 							<label htmlFor="create_membership_status" className={labelClass}>
@@ -606,13 +562,13 @@ const MembersPage = async ({ searchParams }: MembersPageProps) => {
 							</select>
 						</div>
 						<div className={formSpanFullClass}>
-							<button type="submit" className={secondaryButtonClass}>
-								Create member account
-							</button>
+							<PendingSubmitButton className={secondaryButtonClass} pendingLabel="Creating…">
+								Create account
+							</PendingSubmitButton>
 						</div>
 					</form>
-				</div>
-			</section>
+				</SectionCard>
+			</div>
 		</main>
 	)
 }

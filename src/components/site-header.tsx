@@ -1,63 +1,50 @@
 import Link from 'next/link'
 import { signOut } from '@/server/actions/auth-actions'
-import { canAccessMemberApp, type AccessDecision } from '@/lib/auth/access'
-import { headerButtonClass } from '@/lib/ui'
+import type { AccessDecision } from '@/lib/auth/access'
+import { canCompleteOwnProfile } from '@/lib/auth/access'
 import { FellowshipMark } from '@/components/fellowship-mark'
-import { SiteNav } from '@/components/site-nav'
 import { PendingSubmitButton } from '@/components/pending-submit-button'
+import { SiteHeaderSignIn } from '@/components/site-nav'
 
 interface SiteHeaderProps {
 	access: AccessDecision
-	unreadNoticeCount?: number
 }
 
-export const SiteHeader = ({ access, unreadNoticeCount = 0 }: SiteHeaderProps) => {
+const linkClass =
+	'inline-flex min-h-9 items-center rounded-lg px-3 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-400'
+
+/** Header for visitors and for signed-in accounts that are not yet approved. */
+export const SiteHeader = ({ access }: SiteHeaderProps) => {
 	const signedIn = access.status !== 'unauthenticated'
-	const homeHref = canAccessMemberApp(access) ? '/dashboard' : '/'
-	const mobileSignOut = signedIn ? (
-		<form action={signOut}>
-			<PendingSubmitButton
-				className={`${headerButtonClass} w-full`}
-				pendingLabel="Signing out…"
-			>
-				Sign out
-			</PendingSubmitButton>
-		</form>
-	) : null
 
 	return (
-		<header className="sticky top-0 z-40 border-b border-gold-500/35 bg-navy-950 text-white shadow-[0_12px_40px_-20px_rgba(11,18,32,0.95)]">
-			<div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
+		<header className="border-b border-white/10 bg-navy-950">
+			<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
 				<Link
-					href={homeHref}
-					className="flex items-center gap-3 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-400"
+					href={signedIn ? '/pending' : '/'}
+					className="flex items-center gap-3 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-400"
 				>
-					<FellowshipMark />
+					<FellowshipMark className="h-9 w-9" />
 					<span className="leading-tight">
-						<span className="block font-serif text-lg font-semibold tracking-tight text-white">
-							Gideon&apos;s Army
-						</span>
-						<span className="block text-[0.7rem] font-medium uppercase tracking-[0.18em] text-gold-400">
-							Men&apos;s Fellowship
-						</span>
+						<span className="block font-serif text-[1.0625rem] font-semibold text-white">Gideon&apos;s Army</span>
+						<span className="block text-xs text-white/60">Men&apos;s Fellowship</span>
 					</span>
 				</Link>
-				<div className="flex flex-wrap items-center justify-end gap-4">
-					<SiteNav
-						access={access}
-						unreadNoticeCount={unreadNoticeCount}
-						mobileSignOut={mobileSignOut}
-					/>
-					{signedIn ? (
-						<>
-							<div className="hidden h-6 w-px bg-white/20 lg:block" aria-hidden="true" />
-							<form action={signOut} className="hidden lg:block">
-								<PendingSubmitButton className={headerButtonClass} pendingLabel="Signing out…">
-									Sign out
-								</PendingSubmitButton>
-							</form>
-						</>
+				<div className="flex items-center gap-1">
+					{canCompleteOwnProfile(access) ? (
+						<Link href="/profile" className={linkClass}>
+							Profile
+						</Link>
 					) : null}
+					{signedIn ? (
+						<form action={signOut}>
+							<PendingSubmitButton className={linkClass} pendingLabel="Signing out…">
+								Sign out
+							</PendingSubmitButton>
+						</form>
+					) : (
+						<SiteHeaderSignIn />
+					)}
 				</div>
 			</div>
 		</header>

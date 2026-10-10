@@ -1,21 +1,15 @@
 import type { ReactNode } from 'react'
+import { Icon } from '@/components/icons'
 import type { FlashKind } from '@/lib/ui/flash'
 
 const boxClass: Record<FlashKind, string> = {
-	success:
-		'border-green-300 bg-green-50 text-green-950 shadow-[0_18px_50px_-24px_rgba(22,101,52,0.45)]',
-	danger:
-		'border-red-300 bg-red-50 text-red-950 shadow-[0_18px_50px_-24px_rgba(153,27,27,0.4)]',
+	success: 'border-emerald-200 bg-emerald-50 text-emerald-950',
+	danger: 'border-red-200 bg-red-50 text-red-950',
 }
 
-const accentClass: Record<FlashKind, string> = {
-	success: 'bg-green-600',
-	danger: 'bg-red-700',
-}
-
-const eyebrowClass: Record<FlashKind, string> = {
-	success: 'text-green-800',
-	danger: 'text-red-800',
+const iconClass: Record<FlashKind, string> = {
+	success: 'text-emerald-600',
+	danger: 'text-red-600',
 }
 
 interface AlertNoticeProps {
@@ -23,37 +17,43 @@ interface AlertNoticeProps {
 	title: string
 	children: ReactNode
 	onDismiss?: () => void
+	elevated?: boolean
 }
 
-export const AlertNotice = ({ kind, title, children, onDismiss }: AlertNoticeProps) => {
+export const AlertNotice = ({ kind, title, children, onDismiss, elevated = false }: AlertNoticeProps) => {
 	const isDanger = kind === 'danger'
 
 	return (
 		<div
-			className={`relative overflow-hidden rounded-xl border ${boxClass[kind]}`}
+			className={`flex items-start gap-3 rounded-xl border px-4 py-3.5 ${boxClass[kind]} ${elevated ? 'shadow-raised' : ''}`}
 			role={isDanger ? 'alert' : 'status'}
 			aria-atomic="true"
 		>
-			<span className={`absolute inset-y-0 left-0 w-1.5 ${accentClass[kind]}`} aria-hidden="true" />
-			<div className="flex items-start gap-3 py-4 pl-6 pr-4">
-				<div className="min-w-0 flex-1">
-					<p className={`text-xs font-semibold uppercase tracking-[0.18em] ${eyebrowClass[kind]}`}>
-						{isDanger ? 'Danger' : 'Success'}
-					</p>
-					<p className="mt-2 font-serif text-lg font-semibold leading-6">{title}</p>
-					<div className="mt-2 whitespace-pre-wrap text-sm leading-6">{children}</div>
-				</div>
-				{onDismiss ? (
-					<button
-						type="button"
-						className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md text-current/70 transition hover:bg-black/5 hover:text-current focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500"
-						onClick={onDismiss}
-						aria-label="Dismiss notification"
-					>
-						<span aria-hidden="true">×</span>
-					</button>
-				) : null}
+			<Icon name={isDanger ? 'alert' : 'check'} className={`mt-0.5 h-5 w-5 ${iconClass[kind]}`} />
+			<div className="min-w-0 flex-1">
+				<p className="text-sm font-semibold">{title}</p>
+				<div className="mt-0.5 whitespace-pre-wrap text-sm leading-6 opacity-90">{children}</div>
 			</div>
+			{onDismiss ? (
+				<button
+					type="button"
+					className="-my-1 -mr-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg opacity-70 transition hover:bg-black/5 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500"
+					onClick={onDismiss}
+					aria-label="Dismiss notification"
+				>
+					<Icon name="close" className="h-4 w-4" />
+				</button>
+			) : null}
 		</div>
 	)
+}
+
+/** Stack of page-level notices; renders nothing when empty. */
+export const NoticeStack = ({ children }: { children: ReactNode }) => {
+	const items = Array.isArray(children) ? children.filter(Boolean) : children ? [children] : []
+	if (items.length === 0) {
+		return null
+	}
+
+	return <div className="mb-6 space-y-3">{items}</div>
 }
