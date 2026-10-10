@@ -4,7 +4,7 @@
  */
 
 const focusRing =
-	'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500'
+	'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600'
 
 const buttonBase = `inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${focusRing} disabled:cursor-not-allowed disabled:opacity-50`
 
@@ -20,7 +20,7 @@ export const dangerOutlineButtonClass = `${buttonBase} border border-red-200 bg-
 
 export const smallButtonClass = 'min-h-8 px-3 py-1.5 text-[0.8125rem]'
 
-export const inputClass = `mt-1.5 block w-full rounded-lg border border-cream-300 bg-white px-3 py-2 text-sm text-navy-900 shadow-card placeholder:text-slate-400 read-only:bg-cream-50 ${focusRing} focus-visible:border-gold-500`
+export const inputClass = `mt-1.5 block w-full rounded-lg border border-field bg-white px-3 py-2 text-sm text-navy-900 shadow-card placeholder:text-slate-500 read-only:bg-cream-50 ${focusRing} focus-visible:border-navy-800`
 
 export const textareaClass = `${inputClass} min-h-[6rem]`
 
@@ -28,7 +28,7 @@ export const labelClass = 'block text-sm font-medium text-navy-900'
 
 export const helpTextClass = 'mt-1.5 text-[0.8125rem] leading-5 text-slate-500'
 
-export const navLinkClass = `rounded-sm font-semibold text-navy-800 underline decoration-gold-500/60 decoration-2 underline-offset-4 transition-colors hover:text-navy-950 hover:decoration-gold-500 ${focusRing}`
+export const navLinkClass = `rounded-sm font-semibold text-navy-800 underline decoration-navy-800/35 decoration-2 underline-offset-4 transition-colors hover:text-navy-950 hover:decoration-navy-800 ${focusRing}`
 
 /* Page widths. The app shell already provides padding and a max width. */
 export const pageMainClass = 'mx-auto w-full max-w-6xl'
@@ -64,7 +64,7 @@ export const dtClass = 'text-[0.8125rem] font-medium text-slate-500'
 
 export const ddClass = 'mt-0.5 text-sm font-medium text-navy-950'
 
-export const cardLinkClass = `${cardClass} block transition-colors hover:border-gold-500/60 ${focusRing}`
+export const cardLinkClass = `${cardClass} block transition-colors hover:border-navy-600/40 ${focusRing}`
 
 export const filterActiveClass = `inline-flex min-h-9 items-center rounded-lg bg-navy-900 px-3 text-sm font-semibold text-white ${focusRing}`
 
@@ -76,9 +76,10 @@ export const tableClass = 'min-w-full text-left text-sm'
 
 export const theadClass = 'border-b border-line bg-cream-50 text-[0.8125rem] text-slate-500'
 
-export const thClass = 'whitespace-nowrap px-4 py-2.5 font-medium'
+export const thClass =
+	'whitespace-nowrap px-4 py-2.5 font-medium first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6'
 
-export const tdClass = 'px-4 py-3 text-navy-900'
+export const tdClass = 'px-4 py-3 text-navy-900 first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6'
 
 export const trClass = 'border-b border-cream-100 last:border-0'
 

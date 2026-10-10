@@ -24,7 +24,7 @@ export const AnniversaryPhoto = ({ name, photoUrl, size = 'landscape' }: Anniver
 
 	return (
 		<div
-			className={`${sizeClass} flex shrink-0 items-center justify-center bg-cream-100 text-slate-400 ring-1 ring-inset ring-line`}
+			className={`${sizeClass} flex shrink-0 items-center justify-center bg-cream-100 text-slate-500 ring-1 ring-inset ring-line`}
 			aria-hidden={thumb ? 'true' : undefined}
 		>
 			{thumb ? (

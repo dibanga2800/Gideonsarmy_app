@@ -11,7 +11,7 @@ const toneClass: Record<BadgeTone, string> = {
 	negative: 'bg-red-50 text-red-800 ring-red-600/20',
 	info: 'bg-sky-50 text-sky-800 ring-sky-600/20',
 	neutral: 'bg-cream-100 text-slate-600 ring-slate-500/15',
-	brand: 'bg-gold-100 text-gold-700 ring-gold-500/30',
+	brand: 'bg-navy-900 text-white ring-navy-900',
 }
 
 const dotClass: Record<BadgeTone, string> = {
@@ -20,7 +20,7 @@ const dotClass: Record<BadgeTone, string> = {
 	negative: 'bg-red-500',
 	info: 'bg-sky-500',
 	neutral: 'bg-slate-400',
-	brand: 'bg-gold-500',
+	brand: 'bg-gold-300',
 }
 
 interface StatusBadgeProps {
@@ -72,7 +72,7 @@ export const PaymentStatusBadge = ({ status }: { status: PaymentSubmissionStatus
 
 export const RoleBadge = ({ role }: { role: 'MEMBER' | 'ADMIN' }) =>
 	role === 'ADMIN' ? (
-		<StatusBadge tone="brand" dot={false}>
+		<StatusBadge tone="info" dot={false}>
 			Administrator
 		</StatusBadge>
 	) : (

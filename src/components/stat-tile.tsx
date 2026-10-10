@@ -39,7 +39,7 @@ export const StatTile = ({ label, value, detail, icon, href, tone = 'default' }:
 		return (
 			<Link
 				href={href}
-				className={`${className} transition-colors hover:border-gold-500/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500`}
+				className={`${className} transition-colors hover:border-navy-600/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600`}
 			>
 				{body}
 			</Link>

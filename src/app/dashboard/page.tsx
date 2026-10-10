@@ -9,10 +9,9 @@ import { getOwnUnreadNoticeCount } from '@/server/services/notice-service'
 import { CelebrantsCard } from '@/components/celebrants-card'
 import { DateBlock, formatLondonTime, formatLondonWeekdayDate } from '@/components/date-block'
 import { DuesMonthStrip } from '@/components/dues-month-strip'
-import { Icon } from '@/components/icons'
+import { Icon, type IconName } from '@/components/icons'
 import { PageHeader } from '@/components/page-header'
 import { SectionCard } from '@/components/section-card'
-import { StatTile } from '@/components/stat-tile'
 import { ComplianceBadge } from '@/components/status-badge'
 import { getNextPrayerMeeting } from '@/lib/dates/prayer-meeting'
 import { formatPenceAsGbp } from '@/lib/money'
@@ -48,20 +47,27 @@ const DashboardPage = async () => {
 		isAdmin ? listMembersPageForAdmin({ status: 'PENDING', page: 1, pageSize: 1 }) : Promise.resolve(null),
 	])
 	const firstName = session.profile?.first_name?.trim() || 'brother'
+	const pendingCount = pendingMembers?.total ?? 0
+	const todos: Array<{ href: string; label: string; icon: IconName }> = [
+		...(unreadCount > 0
+			? [{ href: '/notifications', label: `${unreadCount} unread ${unreadCount === 1 ? 'notice' : 'notices'}`, icon: 'bell' as const }]
+			: []),
+		...(pendingCount > 0
+			? [{ href: '/admin/members', label: `${pendingCount} ${pendingCount === 1 ? 'member' : 'members'} awaiting approval`, icon: 'users' as const }]
+			: []),
+		...(session.profile && !session.profile.birth_month
+			? [{ href: '/profile', label: 'Add your birthday to your profile', icon: 'user' as const }]
+			: []),
+	]
 
 	return (
 		<main className={pageMainClass}>
 			<PageHeader title={`${greeting()}, ${firstName}`} description="Here's where things stand this month." />
 
-			<div className="grid gap-5 lg:grid-cols-3">
+			<div className="grid gap-5 lg:grid-cols-3 lg:items-start">
 				<SectionCard
 					title={duesSummary ? `Your dues for ${duesSummary.year}` : 'Your dues'}
 					className="lg:col-span-2"
-					actions={
-						<Link href="/dues" className={secondaryButtonClass}>
-							Dues and bank details
-						</Link>
-					}
 				>
 					{duesSummary ? (
 						<>
@@ -95,74 +101,62 @@ const DashboardPage = async () => {
 									</span>
 								</p>
 							) : null}
+							<Link href="/dues" className={`${secondaryButtonClass} mt-5`}>
+								{duesSummary.compliance.isUpToDate ? 'View dues' : 'How to pay'}
+								<Icon name="arrow-right" className="h-4 w-4" />
+							</Link>
 						</>
 					) : (
 						<p className="text-sm text-slate-600">Your dues record isn&apos;t available right now.</p>
 					)}
 				</SectionCard>
 
-				<section
-					aria-labelledby="next-meeting-heading"
-					className="relative flex flex-col overflow-hidden rounded-xl bg-navy-950 p-5 text-white shadow-card sm:p-6"
-				>
-					<h2 id="next-meeting-heading" className="text-base font-semibold">
-						Next prayer meeting
-					</h2>
-					<div className="mt-5 flex items-center gap-4">
-						<DateBlock value={nextPrayerMeeting} tone="dark" />
-						<div>
-							<p className="font-semibold">{formatLondonWeekdayDate(nextPrayerMeeting)}</p>
-							<p className="mt-0.5 text-sm text-white/70">{formatLondonTime(nextPrayerMeeting)}, UK time</p>
-						</div>
-					</div>
-					<p className="mt-5 text-sm leading-6 text-white/60">Second Thursday of every month.</p>
-					<Link
-						href="/events"
-						className="mt-auto inline-flex items-center gap-1.5 self-start rounded-md pt-5 text-sm font-semibold text-gold-300 hover:text-gold-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-300"
+				<div className="flex flex-col gap-5">
+					<section
+						aria-labelledby="next-meeting-heading"
+						className="relative flex flex-col overflow-hidden rounded-xl bg-navy-950 p-5 text-white shadow-card sm:p-6"
 					>
-						All gatherings
-						<Icon name="arrow-right" className="h-4 w-4" />
-					</Link>
-				</section>
-			</div>
+						<h2 id="next-meeting-heading" className="text-base font-semibold">
+							Next prayer meeting
+						</h2>
+						<div className="mt-5 flex items-center gap-4">
+							<DateBlock value={nextPrayerMeeting} tone="dark" />
+							<div>
+								<p className="font-semibold">{formatLondonWeekdayDate(nextPrayerMeeting)}</p>
+								<p className="mt-0.5 text-sm text-white/70">{formatLondonTime(nextPrayerMeeting)}, UK time</p>
+							</div>
+						</div>
+						<p className="mt-5 text-sm leading-6 text-white/60">Second Thursday of every month.</p>
+						<Link
+							href="/events"
+							className="mt-auto inline-flex items-center gap-1.5 self-start rounded-md pt-5 text-sm font-semibold text-gold-300 hover:text-gold-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-300"
+						>
+							All gatherings
+							<Icon name="arrow-right" className="h-4 w-4" />
+						</Link>
+					</section>
 
-			<div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-				<StatTile
-					label="Unread notices"
-					value={unreadCount}
-					detail={unreadCount === 0 ? "You're all caught up." : 'Birthdays, anniversaries and reminders.'}
-					icon="bell"
-					href="/notifications"
-				/>
-				<StatTile
-					label={celebrants ? `Celebrating in ${celebrants.monthLabel.split(' ')[0]}` : 'Celebrations'}
-					value={celebrants ? celebrants.birthdays.length + celebrants.anniversaries.length : '—'}
-					detail={
-						celebrants
-							? `${celebrants.birthdays.length} ${celebrants.birthdays.length === 1 ? 'birthday' : 'birthdays'}, ${celebrants.anniversaries.length} ${celebrants.anniversaries.length === 1 ? 'anniversary' : 'anniversaries'}`
-							: undefined
-					}
-					icon="gift"
-					href="/celebrations"
-				/>
-				{isAdmin && pendingMembers ? (
-					<StatTile
-						label="Awaiting approval"
-						value={pendingMembers.total}
-						detail={pendingMembers.total === 0 ? 'No new members to review.' : 'New members to review.'}
-						icon="users"
-						href="/admin/members"
-						tone={pendingMembers.total > 0 ? 'attention' : 'default'}
-					/>
-				) : (
-					<StatTile
-						label="Your profile"
-						value={session.profile?.birth_month ? 'Dates added' : 'Add your birthday'}
-						detail="Birthday and anniversary feed the celebration list."
-						icon="user"
-						href="/profile"
-					/>
-				)}
+					{todos.length > 0 ? (
+						<SectionCard title="Needs your attention" flush>
+							<ul className="divide-y divide-cream-100">
+								{todos.map((todo) => (
+									<li key={todo.href}>
+										<Link
+											href={todo.href}
+											className="flex items-center gap-3 px-5 py-3 text-sm transition-colors hover:bg-cream-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gold-600 sm:px-6"
+										>
+											<span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy-50 text-navy-800">
+												<Icon name={todo.icon} className="h-4 w-4" />
+											</span>
+											<span className="flex-1 font-medium text-navy-950">{todo.label}</span>
+											<Icon name="arrow-right" className="h-4 w-4 text-slate-500" />
+										</Link>
+									</li>
+								))}
+							</ul>
+						</SectionCard>
+					) : null}
+				</div>
 			</div>
 
 			{celebrants ? (

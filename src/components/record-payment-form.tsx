@@ -122,7 +122,7 @@ export const RecordPaymentForm = ({
 								return (
 									<li key={row.id}>
 										<label
-											className={`flex min-h-10 cursor-pointer items-center justify-center rounded-md px-2 text-center text-[0.8125rem] font-medium ring-1 ring-inset transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-1 has-[:focus-visible]:outline-gold-500 ${
+											className={`flex min-h-10 cursor-pointer items-center justify-center rounded-md px-2 text-center text-[0.8125rem] font-medium ring-1 ring-inset transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-1 has-[:focus-visible]:outline-gold-600 ${
 												checked
 													? 'bg-navy-900 text-white ring-navy-900'
 													: 'bg-white text-navy-900 ring-cream-300 hover:bg-cream-50'

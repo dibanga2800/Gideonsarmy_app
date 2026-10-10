@@ -18,23 +18,35 @@ interface DateBlockProps {
 	tone?: 'light' | 'dark'
 }
 
-/** Calendar-style month and day, shown in fellowship (London) time. */
+/**
+ * Calendar-style month and day in fellowship (London) time. On light surfaces
+ * the month sits on a navy band, like a tear-off calendar page.
+ */
 export const DateBlock = ({ value, tone = 'light' }: DateBlockProps) => {
 	const date = value instanceof Date ? value : new Date(value)
-	const dark = tone === 'dark'
+	const month = part(date, { month: 'short' })
+	const day = part(date, { day: 'numeric' })
+
+	if (tone === 'dark') {
+		return (
+			<div
+				className="flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-white/10 text-center ring-1 ring-inset ring-white/15"
+				aria-hidden="true"
+			>
+				<span className="text-[0.6875rem] font-semibold text-gold-300">{month}</span>
+				<span className="text-2xl font-semibold leading-none text-white">{day}</span>
+			</div>
+		)
+	}
 
 	return (
 		<div
-			className={`flex h-16 w-14 shrink-0 flex-col items-center justify-center overflow-hidden rounded-lg text-center ${
-				dark ? 'bg-white/10 ring-1 ring-inset ring-white/15' : 'bg-white ring-1 ring-inset ring-line'
-			}`}
+			className="flex h-16 w-14 shrink-0 flex-col overflow-hidden rounded-lg bg-white text-center ring-1 ring-inset ring-line"
 			aria-hidden="true"
 		>
-			<span className={`text-[0.6875rem] font-semibold ${dark ? 'text-gold-300' : 'text-gold-600'}`}>
-				{part(date, { month: 'short' })}
-			</span>
-			<span className={`text-2xl font-semibold leading-none ${dark ? 'text-white' : 'text-navy-950'}`}>
-				{part(date, { day: 'numeric' })}
+			<span className="bg-navy-900 py-0.5 text-[0.6875rem] font-semibold text-gold-300">{month}</span>
+			<span className="flex flex-1 items-center justify-center text-2xl font-semibold leading-none text-navy-950">
+				{day}
 			</span>
 		</div>
 	)

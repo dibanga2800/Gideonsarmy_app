@@ -103,7 +103,7 @@ const HomePage = async () => {
 			{access.status !== 'unauthenticated' ? null : (
 				<p className="mt-10 px-1 text-sm text-slate-500">
 					Invited but haven&apos;t chosen a password?{' '}
-					<Link href="/signup" className="font-semibold text-navy-800 underline decoration-gold-500/60 decoration-2 underline-offset-4 hover:decoration-gold-500">
+					<Link href="/signup" className="font-semibold text-navy-800 underline decoration-navy-800/35 decoration-2 underline-offset-4 hover:decoration-navy-800">
 						Create one here
 					</Link>
 					.

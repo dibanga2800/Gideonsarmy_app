@@ -36,7 +36,7 @@ export const PhotoLightbox = ({
 			<button
 				ref={openerRef}
 				type="button"
-				className={`${className} overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500`}
+				className={`${className} overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600`}
 				aria-label={`View larger image: ${alt}`}
 				onClick={() => setIsOpen(true)}
 			>

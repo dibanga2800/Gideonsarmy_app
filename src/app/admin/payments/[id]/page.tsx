@@ -110,7 +110,7 @@ const PaymentDetailPage = async ({ params, searchParams }: PaymentDetailPageProp
 											<li key={file.id}>
 												<Link
 													href={`/payment-evidence/${file.id}`}
-													className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-navy-900 ring-1 ring-inset ring-line hover:bg-cream-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500"
+													className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-navy-900 ring-1 ring-inset ring-line hover:bg-cream-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600"
 												>
 													<Icon name="file" className="h-4 w-4 text-slate-500" />
 													{file.original_filename}

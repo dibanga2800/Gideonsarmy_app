@@ -3,11 +3,11 @@ import { formatMonthShort } from '@/lib/dates/dues-year'
 import type { LedgerCell, LedgerCellState } from '@/lib/dues/ledger'
 
 const cellClass: Record<LedgerCellState, string> = {
-	paid: 'bg-emerald-600 text-white',
-	owing: 'bg-amber-100 text-amber-900 ring-1 ring-inset ring-amber-400',
+	paid: 'bg-emerald-700 text-white',
+	owing: 'bg-amber-100 text-amber-950 ring-1 ring-inset ring-amber-600',
 	waived: 'bg-cream-100 text-slate-500 ring-1 ring-inset ring-slate-300',
-	not_due: 'bg-white text-slate-400 ring-1 ring-inset ring-cream-300 [background-image:repeating-linear-gradient(135deg,transparent_0_5px,rgb(225_228_234/0.7)_5px_6px)]',
-	missing: 'border border-dashed border-cream-300 bg-white text-slate-400',
+	not_due: 'bg-white text-slate-500 ring-1 ring-inset ring-cream-300 [background-image:repeating-linear-gradient(135deg,transparent_0_5px,rgb(225_228_234/0.7)_5px_6px)]',
+	missing: 'border border-dashed border-field bg-white text-slate-500',
 }
 
 const stateLabel: Record<LedgerCellState, string> = {

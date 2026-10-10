@@ -33,7 +33,7 @@ interface CelebrationsPageProps {
 
 const CelebrantCard = ({ item, kind }: { item: Celebrant; kind: 'birthday' | 'anniversary' }) => (
 	<li
-		className={`overflow-hidden rounded-xl border bg-white ${item.isToday ? 'border-gold-500/60 ring-2 ring-gold-500/20' : 'border-line'}`}
+		className={`overflow-hidden rounded-xl border bg-white ${item.isToday ? 'border-navy-900 ring-2 ring-navy-900/15' : 'border-line'}`}
 	>
 		{kind === 'anniversary' ? (
 			<AnniversaryPhoto name={item.name} photoUrl={item.anniversaryPhotoUrl} />

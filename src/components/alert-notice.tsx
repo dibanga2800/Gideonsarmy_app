@@ -37,7 +37,7 @@ export const AlertNotice = ({ kind, title, children, onDismiss, elevated = false
 			{onDismiss ? (
 				<button
 					type="button"
-					className="-my-1 -mr-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg opacity-70 transition hover:bg-black/5 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500"
+					className="-my-1 -mr-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg opacity-70 transition hover:bg-black/5 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600"
 					onClick={onDismiss}
 					aria-label="Dismiss notification"
 				>

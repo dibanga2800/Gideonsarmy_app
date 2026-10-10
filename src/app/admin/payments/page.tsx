@@ -332,7 +332,7 @@ const PaymentsPage = async ({ searchParams }: PaymentsPageProps) => {
 															Attached
 														</span>
 													) : (
-														<span className="text-slate-400">None</span>
+														<span className="text-slate-500">None</span>
 													)}
 												</td>
 												<td className={`${tdClass} text-right`}>

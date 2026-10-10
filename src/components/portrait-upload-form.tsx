@@ -5,7 +5,7 @@ import { compressPortraitFile } from '@/lib/members/compress-portrait-file'
 import { helpTextClass, labelClass } from '@/lib/ui'
 
 const fileInputClass =
-	'mt-1.5 block w-full rounded-lg border border-dashed border-cream-300 bg-cream-50 p-2 text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-navy-900 file:shadow-card file:ring-1 file:ring-line hover:file:bg-cream-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500'
+	'mt-1.5 block w-full rounded-lg border border-dashed border-cream-300 bg-cream-50 p-2 text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-navy-900 file:shadow-card file:ring-1 file:ring-line hover:file:bg-cream-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600'
 
 interface PortraitFileFieldProps {
 	name?: string

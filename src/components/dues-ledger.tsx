@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { PendingSubmitButton } from '@/components/pending-submit-button'
 import { formatMonthShort } from '@/lib/dates/dues-year'
 import { getLondonDate } from '@/lib/dates/due-month'
 import { memberDisplayName } from '@/lib/members/display'
@@ -76,7 +77,7 @@ export const DuesLedger = ({ action, year, rows }: DuesLedgerProps) => {
 					/>
 				</div>
 				<p className={`${helpTextClass} sm:mb-2`}>
-					Tick the months a member has paid, then press Record on his row. Date and reference apply to
+					Tick the months a member has paid and a Record button appears on his row. Date and reference apply to
 					each row you record.
 				</p>
 			</div>
@@ -99,7 +100,7 @@ export const DuesLedger = ({ action, year, rows }: DuesLedgerProps) => {
 							<th scope="col" className="px-3 py-2.5 text-right font-medium">
 								Owing
 							</th>
-							<th scope="col" className="px-3 py-2.5 sm:pr-6">
+							<th scope="col" className="w-36 px-3 py-2.5 sm:pr-6">
 								<span className="sr-only">Record</span>
 							</th>
 						</tr>
@@ -130,7 +131,7 @@ const cellBase = 'mx-auto flex h-8 w-9 items-center justify-center rounded-md te
 const StateCell = ({ state }: { state: LedgerCell['state'] }) => {
 	if (state === 'paid') {
 		return (
-			<span className={`${cellBase} bg-emerald-600 text-white`} title="Paid">
+			<span className={`${cellBase} bg-emerald-700 text-white`} title="Paid">
 				<svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
 					<path d="m5 12.5 4.5 4.5L19 7.5" />
 				</svg>
@@ -141,7 +142,7 @@ const StateCell = ({ state }: { state: LedgerCell['state'] }) => {
 
 	if (state === 'owing') {
 		return (
-			<span className={`${cellBase} bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-300`} title="Owing">
+			<span className={`${cellBase} bg-amber-100 text-amber-950 ring-1 ring-inset ring-amber-600`} title="Owing">
 				£<span className="sr-only"> owing</span>
 			</span>
 		)
@@ -156,7 +157,7 @@ const StateCell = ({ state }: { state: LedgerCell['state'] }) => {
 	}
 
 	return (
-		<span className={`${cellBase} text-slate-300`} title={state === 'missing' ? 'Not set up' : 'Not yet due'}>
+		<span className={`${cellBase} text-slate-400`} title={state === 'missing' ? 'Not set up' : 'Not yet due'}>
 			–<span className="sr-only">{state === 'missing' ? 'Not set up' : 'Not yet due'}</span>
 		</span>
 	)
@@ -201,10 +202,10 @@ const LedgerMemberRow = ({
 					<td key={cell.month} className="px-1 py-2 text-center">
 						{canSelect && cell.dues ? (
 							<label
-								className={`${cellBase} cursor-pointer ring-1 ring-inset transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold-500 ${
+								className={`${cellBase} cursor-pointer ring-1 ring-inset transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold-600 ${
 									checked
 										? 'bg-navy-900 text-white ring-navy-900'
-										: 'bg-amber-50 text-amber-800 ring-amber-300 hover:bg-amber-100'
+										: 'bg-amber-100 text-amber-950 ring-amber-600 hover:bg-amber-200'
 								}`}
 								title={checked ? 'Selected to record' : 'Owing: tick to record'}
 							>
@@ -234,25 +235,29 @@ const LedgerMemberRow = ({
 				)}
 			</td>
 			<td className="px-3 py-2 sm:pr-6">
-				<form action={action} className="flex justify-end">
-					<input type="hidden" name="source" value="payments" />
-					<input type="hidden" name="ledgerYear" value={String(year)} />
-					<input type="hidden" name="memberId" value={member.id} />
-					<input type="hidden" name="paymentDate" value={paymentDate} />
-					<input type="hidden" name="transactionReference" value={reference} />
-					<input type="hidden" name="notes" value={`Recorded from ${year} ledger`} />
-					<input type="hidden" name="amountPounds" value={penceToPoundsInput(selectedTotal)} />
-					{selectedIds.map((id) => (
-						<input key={id} type="hidden" name="duesIds" value={id} />
-					))}
-					<button
-						type="submit"
-						className={`${primaryButtonClass} ${smallButtonClass} whitespace-nowrap`}
-						disabled={selectedIds.length === 0}
-					>
-						{selectedIds.length === 0 ? 'Record' : `Record ${formatPenceAsGbp(selectedTotal)}`}
-					</button>
-				</form>
+				{selectedIds.length > 0 ? (
+					<form action={action} className="flex justify-end">
+						<input type="hidden" name="source" value="payments" />
+						<input type="hidden" name="ledgerYear" value={String(year)} />
+						<input type="hidden" name="memberId" value={member.id} />
+						<input type="hidden" name="paymentDate" value={paymentDate} />
+						<input type="hidden" name="transactionReference" value={reference} />
+						<input type="hidden" name="notes" value={`Recorded from ${year} ledger`} />
+						<input type="hidden" name="amountPounds" value={penceToPoundsInput(selectedTotal)} />
+						{selectedIds.map((id) => (
+							<input key={id} type="hidden" name="duesIds" value={id} />
+						))}
+						<PendingSubmitButton
+							className={`${primaryButtonClass} ${smallButtonClass} whitespace-nowrap`}
+							pendingLabel="Recording…"
+							aria-label={`Record ${formatPenceAsGbp(selectedTotal)} for ${memberDisplayName(member)}`}
+						>
+							Record {formatPenceAsGbp(selectedTotal)}
+						</PendingSubmitButton>
+					</form>
+				) : (
+					<span className="sr-only">Tick owing months to record a payment</span>
+				)}
 			</td>
 		</tr>
 	)

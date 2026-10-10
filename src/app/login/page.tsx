@@ -131,7 +131,7 @@ const LoginPage = ({ searchParams }: LoginPageProps) => {
 
 							<div className="flex items-center gap-3" aria-hidden="true">
 								<div className="h-px flex-1 bg-line" />
-								<span className="text-xs text-slate-400">or with email</span>
+								<span className="text-xs text-slate-500">or with email</span>
 								<div className="h-px flex-1 bg-line" />
 							</div>
 

@@ -20,7 +20,7 @@ export const LedgerYearNav = ({ years, selectedYear, hrefForYear }: LedgerYearNa
 					<Link
 						key={year}
 						href={hrefForYear(year)}
-						className={`inline-flex min-h-8 items-center rounded-md px-3 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-gold-500 ${
+						className={`inline-flex min-h-8 items-center rounded-md px-3 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-gold-600 ${
 							active ? 'bg-white font-semibold text-navy-950 shadow-card' : 'font-medium text-slate-600 hover:text-navy-900'
 						}`}
 						aria-current={active ? 'page' : undefined}

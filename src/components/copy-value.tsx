@@ -41,7 +41,7 @@ export const CopyValue = ({ label, value, copyText }: CopyValueProps) => {
 			<button
 				type="button"
 				onClick={handleCopy}
-				className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold text-navy-800 transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500"
+				className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold text-navy-800 transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600"
 				aria-label={`Copy ${label.toLowerCase()}`}
 			>
 				<Icon name={copied ? 'check' : 'copy'} className="h-4 w-4" />

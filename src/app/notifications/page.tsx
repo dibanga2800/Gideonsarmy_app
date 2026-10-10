@@ -70,14 +70,14 @@ const NoticesPage = async ({ searchParams }: NoticesPageProps) => {
 							return (
 								<li
 									key={notice.id}
-									className={`relative flex gap-4 px-5 py-4 sm:px-6 ${isUnread ? 'bg-gold-100/30' : ''}`}
+									className={`relative flex gap-4 px-5 py-4 sm:px-6 ${isUnread ? 'bg-navy-50/70' : ''}`}
 								>
 									{isUnread ? (
-										<span className="absolute inset-y-0 left-0 w-0.5 bg-gold-500" aria-hidden="true" />
+										<span className="absolute inset-y-0 left-0 w-1 bg-navy-800" aria-hidden="true" />
 									) : null}
 									<span
 										className={`mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-											isUnread ? 'bg-white text-gold-600 ring-1 ring-gold-500/30' : 'bg-cream-100 text-slate-500'
+											isUnread ? 'bg-navy-900 text-white' : 'bg-cream-100 text-slate-500'
 										}`}
 									>
 										<Icon name={noticeIcon(notice.notification_type)} className="h-[1.125rem] w-[1.125rem]" />

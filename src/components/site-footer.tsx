@@ -5,10 +5,10 @@ const MIXLR_EMBED = 'https://mixlr.com/rccg-radio/embed'
 const MIXLR_FALLBACK = 'https://myrccgradio.mixlr.com/'
 
 const socialLinkClass =
-	'inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-cream-100 hover:text-navy-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500'
+	'inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-cream-100 hover:text-navy-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600'
 
 const textLinkClass =
-	'rounded-sm text-slate-600 transition-colors hover:text-navy-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500'
+	'rounded-sm text-slate-600 transition-colors hover:text-navy-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600'
 
 const SocialLinks = () => (
 	<nav className="flex items-center gap-1" aria-label="Parish social media">
@@ -59,8 +59,8 @@ const SocialLinks = () => (
  */
 const RadioPlayer = () => (
 	<details className="group rounded-xl border border-line bg-white">
-		<summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-xl px-4 text-sm font-medium text-navy-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500 [&::-webkit-details-marker]:hidden">
-			<Icon name="radio" className="h-[1.125rem] w-[1.125rem] text-gold-600" />
+		<summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-xl px-4 text-sm font-medium text-navy-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600 [&::-webkit-details-marker]:hidden">
+			<Icon name="radio" className="h-[1.125rem] w-[1.125rem] text-navy-700" />
 			<span className="flex-1">Listen to RCCG Radio</span>
 			<span className="text-xs text-slate-500 group-open:hidden">Open player</span>
 			<span className="hidden text-xs text-slate-500 group-open:inline">Hide player</span>
@@ -91,7 +91,7 @@ export const SiteFooter = () => {
 				<div className="space-y-3">
 					<p className="text-sm font-semibold text-navy-900">
 						Gideon&apos;s Army Men&apos;s Fellowship
-						<span className="block font-normal text-slate-500">RCCG Living Water Parish, Stoke-on-Trent</span>
+						<span className="block font-normal text-slate-600">RCCG Living Water Parish, Stoke-on-Trent</span>
 					</p>
 					<nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm" aria-label="Legal information">
 						<Link href="/privacy" className={textLinkClass}>
@@ -103,7 +103,7 @@ export const SiteFooter = () => {
 					</nav>
 					<div className="flex flex-wrap items-center gap-3">
 						<SocialLinks />
-						<p className="text-xs text-slate-400">
+						<p className="text-xs text-slate-600">
 							© {new Date().getFullYear()} Gideon&apos;s Army Men&apos;s Fellowship
 						</p>
 					</div>

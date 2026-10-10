@@ -206,7 +206,7 @@ const MemberDetailPage = async ({ params, searchParams }: MemberDetailPageProps)
 												Keep the full year for brothers already in the fellowship. Choose a later start only
 												for someone who joined after January, so earlier months aren&apos;t charged.
 											</p>
-											<label className="flex cursor-pointer items-start gap-3 rounded-lg border border-line p-3.5 text-sm has-[:checked]:border-gold-500 has-[:checked]:bg-gold-100/40">
+											<label className="flex cursor-pointer items-start gap-3 rounded-lg border border-line p-3.5 text-sm has-[:checked]:border-navy-800 has-[:checked]:bg-navy-50">
 												<input
 													type="radio"
 													name="dues_start_mode"
@@ -222,7 +222,7 @@ const MemberDetailPage = async ({ params, searchParams }: MemberDetailPageProps)
 													</span>
 												</span>
 											</label>
-											<div className="rounded-lg border border-line p-3.5 text-sm has-[:checked]:border-gold-500 has-[:checked]:bg-gold-100/40">
+											<div className="rounded-lg border border-line p-3.5 text-sm has-[:checked]:border-navy-800 has-[:checked]:bg-navy-50">
 												<label className="flex cursor-pointer items-start gap-3">
 													<input
 														type="radio"

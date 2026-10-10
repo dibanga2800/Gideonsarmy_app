@@ -83,7 +83,7 @@ const NavList = ({ groups, pathname }: { groups: NavGroup[]; pathname: string })
 	<nav aria-label="Main" className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
 		{groups.map((group) => (
 			<div key={group.label}>
-				<p className="px-3 text-xs font-medium text-white/45">{group.label}</p>
+				<p className="px-3 text-xs font-medium text-white/55">{group.label}</p>
 				<ul className="mt-2 space-y-0.5">
 					{group.items.map((item) => {
 						const active = isActive(pathname, item)

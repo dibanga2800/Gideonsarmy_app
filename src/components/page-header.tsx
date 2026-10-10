@@ -17,7 +17,7 @@ export const PageHeader = ({ title, description, actions, meta, back }: PageHead
 			{back ? (
 				<Link
 					href={back.href}
-					className="mb-4 inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-slate-500 transition-colors hover:text-navy-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500"
+					className="mb-4 inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-slate-500 transition-colors hover:text-navy-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600"
 				>
 					<Icon name="arrow-left" className="h-4 w-4" />
 					{back.label}
