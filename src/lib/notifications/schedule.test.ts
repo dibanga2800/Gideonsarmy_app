@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
 	duesReminderIdempotencyKey,
+	isEventDay,
 	isTwoDaysBeforeEvent,
-	isWithinTwoHoursBeforeEvent,
 	shouldSendMonthlyDuesReminder,
+	startOfLondonDay,
 } from './schedule'
 
 describe('notification schedule', () => {
@@ -32,10 +33,30 @@ describe('notification schedule', () => {
 		expect(isTwoDaysBeforeEvent(startAt, new Date('2026-10-07T12:00:00.000Z'))).toBe(false)
 	})
 
-	it('matches the two-hour window before a gathering', () => {
+	it('matches the London day of a gathering before it starts', () => {
+		// 8pm BST prayer meeting = 19:00 UTC
 		const startAt = new Date('2026-10-08T19:00:00.000Z')
-		expect(isWithinTwoHoursBeforeEvent(startAt, new Date('2026-10-08T17:00:00.000Z'))).toBe(true)
-		expect(isWithinTwoHoursBeforeEvent(startAt, new Date('2026-10-08T16:59:00.000Z'))).toBe(false)
-		expect(isWithinTwoHoursBeforeEvent(startAt, new Date('2026-10-08T19:00:00.000Z'))).toBe(false)
+		// Morning run, anywhere in Vercel's hour
+		expect(isEventDay(startAt, new Date('2026-10-08T06:00:00.000Z'))).toBe(true)
+		expect(isEventDay(startAt, new Date('2026-10-08T06:59:00.000Z'))).toBe(true)
+		// Evening catch-up still before the start
+		expect(isEventDay(startAt, new Date('2026-10-08T18:30:00.000Z'))).toBe(true)
+		// Once it has started, or the day before
+		expect(isEventDay(startAt, new Date('2026-10-08T19:00:00.000Z'))).toBe(false)
+		expect(isEventDay(startAt, new Date('2026-10-07T18:00:00.000Z'))).toBe(false)
+	})
+
+	it('matches the day of a morning gathering on the London date, not the UTC date', () => {
+		// 00:30 London on 25 October (BST ends that morning) is 23:30 UTC on the 24th
+		const startAt = new Date('2026-10-25T09:30:00.000Z')
+		expect(isEventDay(startAt, new Date('2026-10-24T23:30:00.000Z'))).toBe(true)
+		expect(isEventDay(startAt, new Date('2026-10-24T22:30:00.000Z'))).toBe(false)
+	})
+
+	it('finds the start of the London day in summer and winter time', () => {
+		expect(startOfLondonDay(new Date('2026-10-08T12:00:00.000Z')).toISOString()).toBe('2026-10-07T23:00:00.000Z')
+		expect(startOfLondonDay(new Date('2026-12-08T12:00:00.000Z')).toISOString()).toBe('2026-12-08T00:00:00.000Z')
+		// 00:30 London in BST is still the London day of 9 October
+		expect(startOfLondonDay(new Date('2026-10-08T23:30:00.000Z')).toISOString()).toBe('2026-10-08T23:00:00.000Z')
 	})
 })

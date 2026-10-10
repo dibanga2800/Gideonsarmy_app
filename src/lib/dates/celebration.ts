@@ -39,7 +39,16 @@ const getLondonHour = (from: Date) =>
 		hourCycle: 'h23',
 	}).format(from)
 
-export const isLondonSixAm = (from = new Date()) => getLondonHour(from) === '06'
+/** Celebration emails go out from 6am London time on the day, never overnight. */
+export const CELEBRATION_SEND_FROM_HOUR = 6
+
+/**
+ * True from 6am London time onwards. Deliberately an "after" check, not an
+ * exact hour: Vercel Hobby cron jobs fire somewhere within their hour, so a
+ * job must not depend on landing in one particular hour to do its work.
+ */
+export const isCelebrationSendingOpen = (from = new Date()) =>
+	Number(getLondonHour(from)) >= CELEBRATION_SEND_FROM_HOUR
 
 const sameLondonDate = (left: Date, right: Date) => {
 	const first = getLondonYearMonthDay(left)

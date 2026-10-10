@@ -5,7 +5,7 @@ import {
 	isCelebrationInLondonMonth,
 	isCelebrationOnLondonDate,
 	isCelebrationSevenDaysBefore,
-	isLondonSixAm,
+	isCelebrationSendingOpen,
 	isGregorianLeapYear,
 	nextLondonYearMonth,
 	observedMonthDay,
@@ -29,18 +29,24 @@ describe('celebration dates', () => {
 		expect(isCelebrationSevenDaysBefore(10, 8, new Date('2026-10-08T12:00:00.000Z'))).toBe(false)
 	})
 
-	it('recognizes 6am in London across GMT and BST', () => {
-		expect(isLondonSixAm(new Date('2026-10-06T05:00:00.000Z'))).toBe(true)
-		expect(isLondonSixAm(new Date('2026-12-06T06:00:00.000Z'))).toBe(true)
-		expect(isLondonSixAm(new Date('2026-10-06T04:00:00.000Z'))).toBe(false)
-		expect(isLondonSixAm(new Date('2026-10-06T06:00:00.000Z'))).toBe(false)
+	it('opens celebration sending from 6am London time, in summer and winter', () => {
+		// BST: 05:00 UTC is 6am London
+		expect(isCelebrationSendingOpen(new Date('2026-10-06T05:00:00.000Z'))).toBe(true)
+		expect(isCelebrationSendingOpen(new Date('2026-10-06T04:59:00.000Z'))).toBe(false)
+		// GMT: 06:00 UTC is 6am London
+		expect(isCelebrationSendingOpen(new Date('2026-12-06T06:00:00.000Z'))).toBe(true)
+		expect(isCelebrationSendingOpen(new Date('2026-12-06T05:59:00.000Z'))).toBe(false)
+		// Later in the day stays open, so a late or catch-up run still sends
+		expect(isCelebrationSendingOpen(new Date('2026-10-06T06:45:00.000Z'))).toBe(true)
+		expect(isCelebrationSendingOpen(new Date('2026-12-06T18:30:00.000Z'))).toBe(true)
 	})
 
-	it('moves the UTC schedule at UK daylight-saving transitions', () => {
-		expect(isLondonSixAm(new Date('2026-03-29T05:00:00.000Z'))).toBe(true)
-		expect(isLondonSixAm(new Date('2026-03-29T06:00:00.000Z'))).toBe(false)
-		expect(isLondonSixAm(new Date('2026-10-25T05:00:00.000Z'))).toBe(false)
-		expect(isLondonSixAm(new Date('2026-10-25T06:00:00.000Z'))).toBe(true)
+	it('handles the clock-change mornings', () => {
+		// 29 March 2026: clocks go forward at 01:00 UTC
+		expect(isCelebrationSendingOpen(new Date('2026-03-29T05:00:00.000Z'))).toBe(true)
+		// 25 October 2026: clocks go back at 01:00 UTC
+		expect(isCelebrationSendingOpen(new Date('2026-10-25T05:00:00.000Z'))).toBe(false)
+		expect(isCelebrationSendingOpen(new Date('2026-10-25T06:00:00.000Z'))).toBe(true)
 	})
 
 	it('lists a birthday in the current London month without a year', () => {

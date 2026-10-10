@@ -86,4 +86,4 @@ retries stay identical while next year’s message can differ.
    - **Send this month's emails** — every birthday and anniversary in the current
      Europe/London month (for testing without waiting for the day)
 
-Scheduled production sending for birthdays and wedding anniversaries runs through `/api/jobs/celebrations` at 6:00am Europe/London on the celebration day only. The celebrant receives a personal greeting; all other active members receive a separate celebration message. Other scheduled notifications run through `/api/jobs/notifications`.
+Scheduled production sending for birthdays and wedding anniversaries happens on the celebration day only, from 6am Europe/London: the morning run (`/api/jobs/celebrations`) sends it, and the evening run (`/api/jobs/notifications`) catches up anything missed that day. Gmail sending reuses one pooled SMTP connection per run. The celebrant receives a personal greeting; all other active members receive a separate celebration message. Event and dues reminders go out from the same two runs.
